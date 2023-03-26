@@ -1,0 +1,19 @@
+dataset_name: MNIST
+agg_type: FedAvg
+agg_args: {}
+model_type: "MLP"
+model_args:
+  in_features: 784
+  out_classes: 10
+  hidden_layers:
+    - 100
+    - 100
+n_clients: 200
+n_malicious_clients: 0
+n_clients_per_round: 10
+max_delay: 0
+n_delay_min: 0
+n_delay_max: 5
+poison_data: False
+output_dir: output/MNIST_MLP_FedAvg/5_straggle
+sim_epoch: 2000

@@ -1,7 +1,9 @@
 import yaml
 from argparse import ArgumentParser
+import logging
 
 from simulator import Simulator
+
 
 parser = ArgumentParser()
 parser.add_argument('-C','--config',required=True)

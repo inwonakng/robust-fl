@@ -1,11 +1,11 @@
 from typing import Union
 import torch
 
-from aggregator import Aggregator
-from aggregator.fedavg import FedAvg
+from aggregators import Aggregator
+from aggregators.fedavg import FedAvg
 
-from model import Model
-from model.mlp import MLP
+from models import Model
+from models.mlp import MLP
 
 from simulator.dataset import load_MNIST
 
