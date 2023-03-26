@@ -85,8 +85,10 @@ class Simulator:
                 client_id = i,
                 model = load_model(model_type,model_args),
                 malicious = is_mal,
-                x = x_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
-                y = y_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
+                x_train = x_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
+                y_train = y_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
+                x_test = x_test,
+                y_test = y_test,
                 n_train_epoch = 5,
             ) for i,is_mal in enumerate(is_malicious)
         ]
