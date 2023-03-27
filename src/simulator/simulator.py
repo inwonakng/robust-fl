@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score
 
 from client import Client
 from update import UpdateTracker
-from simulator.loader import load_model,load_aggregator,load_dataset
+from simulator.loader import load_trainer,load_aggregator,load_dataset
 
 np.random.seed(0)
 torch.manual_seed(0)
@@ -63,7 +63,7 @@ class Simulator:
         """
         # self.model_type = model_type
         # self.model_args = model_args
-        self.global_model = load_model(model_type, model_args)
+        self.global_model = load_trainer(model_type, model_args)
 
     def _initiate_aggregator(
             self,

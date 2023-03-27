@@ -4,7 +4,7 @@ import torch
 from aggregators import Aggregator
 from aggregators.fedavg import FedAvg
 
-from models import Model
+from models import Trainer
 from models.mlp import MLP
 
 from dataset import load_MNIST
@@ -23,8 +23,8 @@ DATASET_MAPPING = {
 }
 
 
-def load_model(model_name:str,model_args:dict) -> Model:
-    return Model(MODEL_MAPPING[model_name],**model_args)
+def load_trainer(model_name:str,model_args:dict) -> Trainer:
+    return Trainer(MODEL_MAPPING[model_name],**model_args)
 
 def load_aggregator(agg_name:str,agg_args:dict) -> Aggregator:
     return AGG_MAPPING[agg_name](**agg_args)

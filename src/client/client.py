@@ -3,7 +3,7 @@ import logging
 from sklearn.metrics import accuracy_score
 
 from update import Update
-from models import Model
+from models import Trainer
 
 class Client:
     def __init__(
@@ -27,7 +27,7 @@ class Client:
         self.batch_size = batch_size
         # self.counter = 0
 
-    def update(self,global_model:Model,delay:int) -> Update:
+    def update(self,global_model:Trainer,delay:int) -> Update:
         # make copy of the gloabl model
         client_copy = global_model.clone()
         client_copy.set_state(global_model.get_state())

@@ -1,2 +1,2 @@
-from .models import *
+from .trainer import *
 from .device import DEVICE

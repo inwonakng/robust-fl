@@ -1,7 +1,7 @@
 from typing import List
 import torch
 
-from models import Model
+from models import Trainer
 from update import Update
 from aggregators import Aggregator
 
@@ -14,7 +14,7 @@ class FedAvg(Aggregator):
     
     def aggregate(
         self,
-        global_model: Model,
+        global_model: Trainer,
         updates:List[Update],
     ) -> dict:
         
