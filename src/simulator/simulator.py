@@ -96,10 +96,10 @@ class Simulator:
             n_clients (int): number of clients to create.
             n_malicious_clients (Union[int, float]): number of or a fraction of benign clients to turn malicious. 
             n_clients_per_round (Union[int, float]): number of or a fraction of clients to request per round
-            max_delay (int, optional): _description_. Defaults to 5.
-            n_delay_min (Union[int,float], optional): _description_. Defaults to 0.1.
-            n_delay_max (Union[int,float], optional): _description_. Defaults to 0.3.
-            poison_data (bool, optional): _description_. Defaults to False.
+            max_delay (int, optional): Maximum delay to incur if a client is straggling. Defaults to 5.
+            n_delay_min (Union[int,float], optional): Minimum number of or fraction of stragglers in picked clients. Defaults to 0.1.
+            n_delay_max (Union[int,float], optional): Maximum number of or fraction of stragglers in picked clients. Defaults to 0.3.
+            poison_data (bool, optional): Whether to use data poisoning. Defaults to False.
         """
 
         # set number of malicious clients per round 
@@ -110,7 +110,8 @@ class Simulator:
 
         # set ratio of stragglers per round
         self.n_delay_min = n_delay_min if type(n_delay_min) == int else int(n_delay_min * n_clients_per_round)
-        self.n_delay_max = n_delay_min if type(n_delay_max) == int else int(n_delay_max * n_clients_per_round)
+        self.n_delay_max = n_delay_max if type(n_delay_max) == int else int(n_delay_max * n_clients_per_round)
+        self.max_delay = max_delay
         self.use_delay = max_delay != 0
         self.poison_data = poison_data
 
@@ -129,8 +130,6 @@ class Simulator:
             ) for i,is_mal in enumerate(is_malicious)
         ]
         
-
-
     def _sample_clients(
         self,
         pending_clients = List[int]
@@ -161,8 +160,14 @@ class Simulator:
             np.array: Returns an array of integers denoting the number of rounds the client will withhold from global server
         """
         if self.use_delay:
-            n_delay = np.random.randint(self.n_delay_min,self.n_delay_max)
-            delays = np.random.randint(1,self.max_delay,n_delay)[:n_clients]
+            n_delay = np.random.randint(self.n_delay_min, self.n_delay_max if self.n_delay_max < n_clients else n_clients)
+            # delays = np.random.randint(1, self.max_delay, n_delay)[:n_clients]
+            delays = np.random.permutation(
+                np.concatenate([
+                    np.zeros(n_clients - n_delay),
+                    np.random.randint(1, self.max_delay, n_delay)
+                ])
+            )
         else:
             delays = np.zeros(n_clients)
         return delays

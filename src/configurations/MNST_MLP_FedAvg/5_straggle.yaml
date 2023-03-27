@@ -18,9 +18,9 @@ agg_args:
   agg_type: FedAvg
 client_args:
   n_clients: 100
+  n_malicious_clients: 0
+  n_clients_per_round: 10
+  max_delay: 5
   n_delay_min: 0
   n_delay_max: 5
-  max_delay: 0
-  n_delay_min: 0
-  n_delay_max: 0
   poison_data: False
