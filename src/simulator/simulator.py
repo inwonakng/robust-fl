@@ -11,8 +11,6 @@ from client import Client
 from update import UpdateTracker
 from simulator.loader import load_model,load_aggregator,load_dataset
 
-
-
 np.random.seed(0)
 torch.manual_seed(0)
 
@@ -21,35 +19,16 @@ class Simulator:
     def __init__(
         self,
         dataset_name:str,
-        agg_type: str,
-        agg_args: dict,
-        model_type: str,
-        model_args: dict,
-        n_clients: int,
-        n_malicious_clients: Union[int, float],
-        n_clients_per_round: Union[int, float],
         output_dir: str,
-        max_delay: int = 0,
-        n_delay_min:Union[int,float] = 0,
-        n_delay_max: Union[int,float] = 0,
-        poison_data: bool = False,
-        **kwargs,
+        model_args:dict,
+        agg_args:dict,
+        client_args:dict,
+        sim_epoch: int = 1000,
     ) -> None:
-        """Runs a simulation of FL
+        """Constructs a simulator class that holds environment settings.
 
         Args:
             dataset_name (str): Name of dataset to use.
-            agg_type (str): Name of aggregator to use.
-            agg_args (dict): Arguments to pass into the aggregator constructor.
-            model_type (str): Name of model to use.
-            model_args (dict): Arguments to pass into the model constructor.
-            n_clients (int): number of clients to create.
-            n_malicious_clients (Union[int, float]): number of or a fraction of benign clients to turn malicious. 
-            n_clients_per_round (Union[int, float]): number of or a fraction of clients to request per round
-            max_delay (int, optional): _description_. Defaults to 5.
-            n_delay_min (Union[int,float], optional): _description_. Defaults to 0.1.
-            n_delay_max (Union[int,float], optional): _description_. Defaults to 0.3.
-            poison_data (bool, optional): _description_. Defaults to False.
         """        
 
         # set up logging
@@ -64,6 +43,65 @@ class Simulator:
         self.x_test = x_test
         self.y_test = y_test
 
+
+        self._initiate_model(**model_args)
+        self._initiate_aggregator(**agg_args)
+        self._initiate_clients(**client_args)
+        
+        logging.debug('Simulator -- successfully constructed.')
+
+    def _initiate_model(
+        self,
+        model_type: str,
+        **model_args,
+    ) -> None:
+        """Instantiates the model object
+
+        Args:
+            model_type (str): Name of model to use.
+            model_args (dict): Arguments to pass into the model constructor.
+        """
+        # self.model_type = model_type
+        # self.model_args = model_args
+        self.global_model = load_model(model_type, model_args)
+
+    def _initiate_aggregator(
+            self,
+            agg_type: str,
+            **agg_args
+    ) -> None:
+        """Instantiates the aggregator object
+
+        Args:
+            agg_type (str): Name of aggregator to use.
+            agg_args (dict): Arguments to pass into the aggregator constructor.
+        """
+        self.agg_type = agg_type
+        self.agg_args = agg_args
+        self.aggregator = load_aggregator(agg_type, agg_args)
+
+    def _initiate_clients(
+        self,
+        n_clients: int,
+        n_malicious_clients: Union[int, float],
+        n_clients_per_round: Union[int, float],
+        max_delay: int = 0,
+        n_delay_min:Union[int,float] = 0,
+        n_delay_max: Union[int,float] = 0,
+        poison_data: bool = False,
+    ) -> None:
+        """Creates the clients to consider
+
+        Args:
+            n_clients (int): number of clients to create.
+            n_malicious_clients (Union[int, float]): number of or a fraction of benign clients to turn malicious. 
+            n_clients_per_round (Union[int, float]): number of or a fraction of clients to request per round
+            max_delay (int, optional): _description_. Defaults to 5.
+            n_delay_min (Union[int,float], optional): _description_. Defaults to 0.1.
+            n_delay_max (Union[int,float], optional): _description_. Defaults to 0.3.
+            poison_data (bool, optional): _description_. Defaults to False.
+        """
+
         # set number of malicious clients per round 
         self.n_clients = n_clients
         self.n_malicious_clients = n_malicious_clients if type(n_malicious_clients) == int else int(n_malicious_clients * n_clients)
@@ -77,30 +115,34 @@ class Simulator:
         self.poison_data = poison_data
 
         # instantiate the clients. 
-        train_idxs = np.random.permutation(len(x_train))
-        n_data_per_client = len(x_train) // n_clients
+        train_idxs = np.random.permutation(len(self.x_train))
+        n_data_per_client = len(self.x_train) // n_clients
 
         self.clients = [
             Client(
                 client_id = i,
-                model = load_model(model_type,model_args),
                 malicious = is_mal,
-                x_train = x_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
-                y_train = y_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
-                x_test = x_test,
-                y_test = y_test,
-                n_train_epoch = 5,
+                x_train = self.x_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
+                y_train = self.y_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
+                x_test = self.x_test,
+                y_test = self.y_test,
             ) for i,is_mal in enumerate(is_malicious)
         ]
-        self.global_model = load_model(model_type, model_args)
-        self.aggregator = load_aggregator(agg_type, agg_args)
-        logging.debug('Simulator -- successfully constructed.')
+        
 
 
     def _sample_clients(
         self,
         pending_clients = List[int]
     ) -> List[Client]:
+        """Samples clients to request per round
+
+        Args:
+            pending_clients (_type_, optional): List of client ids for clients who have not responded to a past request. Defaults to List[int].
+
+        Returns:
+            List[Client]: A list of clients whos id is not in pending_clients.
+        """
         picked_clients = [self.clients[i] for i in np.random.permutation(len(self.clients))[:self.n_clients_per_round]]
         not_pending_clients = [c for c in picked_clients if not c.id in pending_clients]
         
@@ -110,20 +152,30 @@ class Simulator:
         self,
         n_clients: int,
     ) -> np.array:
-        
+        """Samples delay for chosen clients
+
+        Args:
+            n_clients (int): Number of clients picked in this round
+
+        Returns:
+            np.array: Returns an array of integers denoting the number of rounds the client will withhold from global server
+        """
         if self.use_delay:
             n_delay = np.random.randint(self.n_delay_min,self.n_delay_max)
             delays = np.random.randint(1,self.max_delay,n_delay)[:n_clients]
         else:
             delays = np.zeros(n_clients)
-
         return delays
 
     def run(
         self,
         n_epoch: int,
     ):
+        """Runs the simluation for specified nubmer of rounds.
 
+        Args:
+            n_epoch (int): Nubmer of rounds to run in simulation.
+        """
         report = []
         update_tracker = UpdateTracker()
         for epoch in tqdm(range(n_epoch), desc='running simulation...', leave=True):
@@ -135,9 +187,9 @@ class Simulator:
             # Step 2. Randomly generate delay for each client and add update to queue
             delays = self._sample_delay(len(picked_clients))
             
-            global_state = self.global_model.state_dict()
+            # global_state = self.global_model.get_state()
             for c,d in zip(picked_clients,delays):
-                update_tracker.add(c.update(global_state,d))
+                update_tracker.add(c.update(self.global_model,d))
             
             # Step 3. Check update queue to see if there are updates that are done. If not, increment their counter
             to_update_global = update_tracker.step()
@@ -153,10 +205,9 @@ class Simulator:
 
             # Step 4. Update the global model with the finished local updates
             new_state = self.aggregator.aggregate(self.global_model, to_update_global)
-            self.global_model.load_state_dict(new_state)
-            pred = self.global_model.predict(self.x_test).cpu().numpy()
+            self.global_model.set_state(new_state)
+            pred = self.global_model.predict(self.x_test)
             logging.debug(f'Simulator -- Global model test acc: {accuracy_score(self.y_test, pred)}')
-
 
             report.append({
                 'round': epoch,

@@ -18,7 +18,7 @@ class FedAvg(Aggregator):
         updates:List[Update],
     ) -> dict:
         
-        new_global_state = global_model.state_dict()
+        new_global_state = global_model.get_state()
         for k in new_global_state:
             new_global_state[k] = torch.stack([
                 u.new_state[k]
