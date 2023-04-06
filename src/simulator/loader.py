@@ -1,26 +1,9 @@
 from typing import Union
 import torch
 
-from aggregators import Aggregator
-from aggregators.fedavg import FedAvg
-
-from models import Trainer
-from models.mlp import MLP
-
-from dataset import load_MNIST
-
-
-MODEL_MAPPING = {
-    "MLP": MLP,
-}
-
-AGG_MAPPING = {
-    "FedAvg": FedAvg,
-}
-
-DATASET_MAPPING = {
-    "MNIST": load_MNIST,
-}
+from aggregators import Aggregator, AGG_MAPPING
+from models import Trainer, MODEL_MAPPING
+from dataset import DATASET_MAPPING
 
 
 def load_trainer(model_name:str,model_args:dict) -> Trainer:

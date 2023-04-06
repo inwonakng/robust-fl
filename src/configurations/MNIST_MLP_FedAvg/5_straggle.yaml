@@ -17,9 +17,9 @@ model_args:
 agg_args:
   agg_type: FedAvg
 client_args:
-  n_clients: 100
   poison_data: False
 scheduler_args:
+  n_clients: 100
   n_malicious_clients: 0
   n_clients_per_round: 10
   max_delay: 5

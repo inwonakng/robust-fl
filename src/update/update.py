@@ -25,6 +25,7 @@ class Update:
         self.test_acc_score = test_acc_score
         self.delay = delay
         self.counter = 0
+        
     
     def ready(self) -> bool:
         """_summary_

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 import numpy as np
 import logging
 
@@ -9,11 +9,19 @@ class Scheduler:
     def __init__(
         self,
         clients: List[Client],
-        
+        max_delay: int,
+        n_delay_min: Union[int,float],
+        n_delay_max: Union[int,float],
+        n_clients_per_round: int,
     ) -> None:
+        
         self.clients = clients
-        self.n_delay_min
-        self.n_delay_max
+
+        self.max_delay = max_delay
+        self.use_delay = max_delay != 0
+        self.n_delay_min = n_delay_min
+        self.n_delay_max = n_delay_max
+        self.n_clients_per_round = n_clients_per_round
 
     def _sample_clients(
         self,

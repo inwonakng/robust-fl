@@ -48,8 +48,8 @@ class Simulator:
 
         self._initiate_model(**model_args)
         self._initiate_aggregator(**agg_args)
-        self._initiate_clients(**client_args)
         self._set_scheduler_options(**scheduler_args)
+        self._initiate_clients(**client_args)
         
         logging.debug('Simulator -- successfully constructed.')
 
@@ -83,28 +83,69 @@ class Simulator:
         self.agg_args = agg_args
         self.aggregator = load_aggregator(agg_type, agg_args)
 
-    def _initiate_clients(
+    def _set_scheduler_options(
         self,
         n_clients: int,
+        n_malicious_clients: Union[int, float],
+        n_clients_per_round: Union[int, float],
+        max_delay: int = 5,
+        n_delay_min:Union[int,float] = 0,
+        n_delay_max: Union[int,float] = 0,
+    ) -> None:
+        """_summary_
+
+        Args:
+            n_clients (int): number of clients to create.
+            n_malicious_clients (Union[int, float]): number of or a fraction of benign clients to turn malicious. 
+            n_clients_per_round (Union[int, float]): number of or a fraction of clients to request per round
+            max_delay (int, optional): Maximum delay to incur if a client is straggling. Defaults to 5.
+            n_delay_min (Union[int,float], optional): Minimum number of or fraction of stragglers in picked clients. Defaults to 0.
+            n_delay_max (Union[int,float], optional): Maximum number of or fraction of stragglers in picked clients. Defaults to 0.
+
+        Returns:
+            _type_: _description_
+        """
+        self.n_clients = n_clients
+        self.n_malicious_clients = n_malicious_clients if type(n_malicious_clients) == int else int(n_malicious_clients * n_clients)
+        self.n_clients_per_round = n_clients_per_round if type(n_clients_per_round) == int else int(n_clients_per_round * n_clients)
+        
+        # set ratio of stragglers per round
+        self.n_delay_min = n_delay_min if type(n_delay_min) == int else int(n_delay_min * n_clients_per_round)
+        self.n_delay_max = n_delay_max if type(n_delay_max) == int else int(n_delay_max * n_clients_per_round)
+        self.max_delay = max_delay
+        
+
+        # return Scheduler(self.clients,self.n_delay_min,self.n_delay_max)
+    
+    def _initiate_scheduler(self) -> Scheduler:
+        return Scheduler(
+            self.clients,
+            self.max_delay,
+            self.n_delay_min,
+            self.n_delay_max,
+            self.n_clients_per_round
+        )
+
+    def _initiate_clients(
+        self,
         poison_data: bool = False,
     ) -> None:
         """Creates the clients to consider
 
         Args:
-            n_clients (int): number of clients to create.
             poison_data (bool, optional): Whether to use data poisoning. Defaults to False.
         """
 
         # set number of malicious clients per round 
-        self.n_clients = n_clients
-        is_malicious = [True] * self.n_malicious_clients + [False] * (n_clients - self.n_malicious_clients)
+        # self.n_clients = n_clients
+        is_malicious = [True] * self.n_malicious_clients + [False] * (self.n_clients - self.n_malicious_clients)
 
 
         self.poison_data = poison_data
 
         # instantiate the clients. 
         train_idxs = np.random.permutation(len(self.x_train))
-        n_data_per_client = len(self.x_train) // n_clients
+        n_data_per_client = len(self.x_train) // self.n_clients
 
         self.clients = [
             Client(
@@ -117,45 +158,6 @@ class Simulator:
             ) for i,is_mal in enumerate(is_malicious)
         ]
     
-    def _set_scheduler_options(
-        self,
-        n_malicious_clients: Union[int, float],
-        n_clients_per_round: Union[int, float],
-        max_delay: int = 5,
-        n_delay_min:Union[int,float] = 0,
-        n_delay_max: Union[int,float] = 0,
-    ) -> None:
-        """_summary_
-
-        Args:
-            n_malicious_clients (Union[int, float]): number of or a fraction of benign clients to turn malicious. 
-            n_clients_per_round (Union[int, float]): number of or a fraction of clients to request per round
-            max_delay (int, optional): Maximum delay to incur if a client is straggling. Defaults to 5.
-            n_delay_min (Union[int,float], optional): Minimum number of or fraction of stragglers in picked clients. Defaults to 0.
-            n_delay_max (Union[int,float], optional): Maximum number of or fraction of stragglers in picked clients. Defaults to 0.
-
-        Returns:
-            _type_: _description_
-        """
-
-        self.n_malicious_clients = n_malicious_clients if type(n_malicious_clients) == int else int(n_malicious_clients * n_clients)
-        self.n_clients_per_round = n_clients_per_round if type(n_clients_per_round) == int else int(n_clients_per_round * n_clients)
-        
-        # set ratio of stragglers per round
-        self.n_delay_min = n_delay_min if type(n_delay_min) == int else int(n_delay_min * n_clients_per_round)
-        self.n_delay_max = n_delay_max if type(n_delay_max) == int else int(n_delay_max * n_clients_per_round)
-        self.max_delay = max_delay
-        self.use_delay = max_delay != 0
-
-        # return Scheduler(self.clients,self.n_delay_min,self.n_delay_max)
-    
-    def _initiate_scheduler(self) -> Scheduler:
-        return Scheduler(
-            self.clients,
-            self.n_delay_min,
-            self.n_delay_max,
-        )
-
 
     def run(
         self,
@@ -200,7 +202,7 @@ class Simulator:
                 'client_req': len(picked_clients),
                 'new_updates': len(to_update_global),
                 'avg_loss': avg_losses,
-                'queue_size': len(update_tracker.delayed_clients),
+                'queue_size': len(update_tracker.delayed_client_ids),
                 # 'model_pred': pred,
                 'client_train_acc': train_acc_scores,
                 'client_test_acc': test_acc_scores,
