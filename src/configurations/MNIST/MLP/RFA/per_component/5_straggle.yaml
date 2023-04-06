@@ -1,0 +1,28 @@
+dataset_name: MNIST
+output_dir: output/MNIST/MLP/RFA/per_component/no_straggle
+sim_epoch: 1000
+model_args:
+  model_type: MLP
+  in_features: 784
+  out_classes: 10
+  hidden_layers:
+    - 200
+    - 200
+  loss_func: CrossEntropyLoss 
+  # loss_args: {}
+  optimizer_func: Adam
+  optimizer_args:
+    lr: 0.01
+    weight_decay: 0.001
+agg_args:
+  agg_type: RFA
+  per_component: True
+client_args:
+  poison_data: False
+scheduler_args:
+  n_clients: 100
+  n_malicious_clients: 0
+  n_clients_per_round: 10
+  max_delay: 5
+  n_delay_min: 0
+  n_delay_max: 5
