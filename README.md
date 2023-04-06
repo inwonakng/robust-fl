@@ -2,13 +2,25 @@
 
 Class project for Security and Privacy in Machine Learning
 
+## Implementation Status
 
+### Dataset:
+- MNIST
 
-## Making virtual environment:
+### Models:
+- MLP
+
+### Aggregators:
+- FedAvg
+- RFA (Robust Federated Aggregation using geometric mean)
+
+## Usage
+
+### Making virtual environment:
 
 This project is built using python 3.10. Conda is highly recommended.
 
-### Using conda
+#### Using conda
 
 1. First create a conda environment with the specified python version (`-y` flag is not necessary, it just means we are saying `y` to everything in the installation step)
 
@@ -35,7 +47,7 @@ pip install numpy pandas scikit-learn matplotlib seaborn
 ```
 
 
-### Using python venv
+#### Using python venv
 run `python3 -m venv venv` in the root folder of the project.
 
 To activate this environment, run `source venv/bin/activate` in a bash terminal or `venv/bin/Activate.ps1`.
@@ -45,15 +57,14 @@ To install the dependencies, run `pip install -r requirements.txt` after activat
 Or you can create a conda environment with the specified python version by running `conda create -n ${ENV_NAME}` and run `conda activate ${ENV_NAME}` to activate it.
 
 
-
-## Running the code:
+### Running the code:
 
 After activating the environment, move into `src` and run 
 ```
-python main.py configurations/{CONFIG_NAME}.yaml
+python main.py {CONFIG_PATH}.yaml
 ```
 
-Example configuration can be found in [src/configurations/MNIST_MLP_FedAvg/no_straggle.yaml](src/configurations/MNIST_MLP_FedAvg/no_straggle.yaml)
+Example configuration for FedAvg with no stragglers can be found in [src/configurations/MNIST/MLP/FedAvg/no_straggle.yaml](src/configurations/MNIST/MLP/FedAvg/no_straggle.yaml)
 
 
 ## Related Works
