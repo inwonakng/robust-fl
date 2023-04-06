@@ -63,13 +63,15 @@ def geometric_median_objective(
 @torch.no_grad()
 def geometric_median(
     points: Union[List[List[torch.Tensor]], List[torch.Tensor]], 
-    weights: torch.Tensor=None, 
+    weights: Union[torch.Tensor, List[int]]=None, 
     eps: float=1e-6, 
     maxiter: int=100, 
     ftol: float=1e-20,
 ) -> List[torch.Tensor] :
     if not weights:
         weights = torch.ones(len(points)).to(points[0][0].device)
+    if type(weights) == list:
+        weights = torch.tensor(weights).to(points[0][0].device)
 
     median = weighted_average(points, weights)
     new_weights = weights
@@ -101,16 +103,21 @@ class RFA(Aggregator):
         updates:List[Update],
     ) -> dict:
         new_global_state = global_model.get_state()
-        points = [list(u.new_state.values()) for u in updates]
+
+        points, weights, update_delays = [], [], []
+        for u in updates:
+            points.append(list(u.new_state.values()))
+            weights.append(u.train_size)
+            update_delays.append(u.counter)
 
         if self.per_component:
             pass
             median = [
-                geometric_median(components)
+                geometric_median(components, weights)
                 for components in zip(*points)
             ]
         else:
-            median = geometric_median(points)
+            median = geometric_median(points, weights)
 
         for i,k in enumerate(new_global_state.keys()):
             new_global_state[k] = median[i]

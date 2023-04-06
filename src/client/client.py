@@ -33,6 +33,7 @@ class Client:
         client_copy.set_state(global_model.get_state())
 
         avg_loss = client_copy.fit(self.x_train,self.y_train,self.n_train_epoch)
+        train_size = len(self.x_train)
         new_state = client_copy.get_state()
         train_acc_score = accuracy_score(self.y_train, client_copy.predict(self.x_train))
         test_acc_score = accuracy_score(self.y_test,client_copy.predict(self.x_test))
@@ -44,6 +45,7 @@ class Client:
             self.id,
             new_state,
             avg_loss,
+            train_size,
             train_acc_score,
             test_acc_score,
             delay
