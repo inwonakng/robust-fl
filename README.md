@@ -44,11 +44,19 @@ conda activate ${ENV_NAME}
 conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia -y
 ```
 
-3. Install the rest of pakages through pip
+3. Install UMAP
+```
+conda install umap-learn -c conda-forge
+```
+
+4. Install the rest of pakages through pip
 
 ```
-pip install numpy pandas scikit-learn matplotlib seaborn
+pip install numpy pandas matplotlib seaborn
 ```
+
+
+Alternatively, you can re-use the `environment.yml` file to re-create the conda environment. If you are on a GPU enabled device, you may need to re-install pytorch and torchvision for the specific cuda version. Check [here](https://pytorch.org/get-started/locally/) for more instructions.
 
 
 #### Using python venv
@@ -76,5 +84,14 @@ Example configuration for FedAvg with no stragglers can be found in [src/configu
 [related_works.md](related_works.md)
 
 
-## Our Proposed Framework
+## Our Proposed Aggregations:
+
+
+### ClusterAgg
+
+
+
+
+
+### RandomAgg
 
