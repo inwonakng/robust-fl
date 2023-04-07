@@ -72,7 +72,6 @@ dependencies:
   - tbb=2021.8.0=hffc8910_0
   - threadpoolctl=3.1.0=pyh8a188c0_0
   - tk=8.6.12=hb8d0fd4_0
-  - torchvision=0.13.1=cpu_py310he5d19f7_0
   - tqdm=4.65.0=pyhd8ed1ab_1
   - typing-extensions=4.5.0=hd8ed1ab_0
   - typing_extensions=4.5.0=pyha770c72_0
@@ -162,6 +161,7 @@ dependencies:
       - stack-data==0.6.2
       - terminado==0.17.1
       - tinycss2==1.2.1
+      - torchvision==0.15.1
       - tornado==6.2
       - traitlets==5.9.0
       - tzdata==2023.3
