@@ -1,6 +1,5 @@
 import yaml
 from argparse import ArgumentParser
-import logging
 
 from simulator import Simulator
 
