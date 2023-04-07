@@ -14,48 +14,45 @@ class Client:
         y_train: torch.Tensor,
         x_test: torch.Tensor,
         y_test: torch.Tensor,
-        n_train_epoch: int = 5,
+        n_train_epoch: int = 1,
         batch_size: int = 100,
         poison_ratio: float = 0.1,
     ):
         self.id = client_id
         self.malicious = malicious
-        self.x_train = x_train
-        self.y_train = y_train
         self.x_test = x_test
         self.y_test = y_test
         self.n_train_epoch = n_train_epoch
         self.batch_size = batch_size
         self.poison_ratio = poison_ratio
 
-    def poison_data(self):
-        # we are shuffling once and reusing it to make sure that there are no overlaps in the label flipping
-        shuffled_idxs = torch.randperm(len(self.y_train))
-        target_labels = self.y_train.unique()
-        poison_size_per_target = int(len(self.y_train) * self.poison_ratio / len(target_labels))
-        poisoned_y_train = self.y_train.clone()
-        for i,t in enumerate(target_labels):
-            available_labels = list(set(target_labels) - set([t]))
-            poison_idxs = shuffled_idxs[poison_size_per_target * i: poison_size_per_target * (i+1)]
-            random_poison_labels = torch.tensor([
-                available_labels[torch.randperm(len(available_labels))[0]]
-                for _ in poison_idxs
-            ])
-            poisoned_y_train[poison_idxs] = random_poison_labels
+        self.x_train = x_train
+        
+        if not self.malicious:
+            self.y_train = y_train
+        else:
+            self.y_train = self.poison_data(y_train)
 
+    def poison_data(self,y_train):
+        # we are shuffling once and reusing it to make sure that there are no overlaps in the label flipping
+        shuffled_idxs = torch.randperm(len(y_train))
+        target_labels = y_train.unique()
+        poison_size = int(len(y_train) * self.poison_ratio)
+        idxs_to_poison = shuffled_idxs[:poison_size]
+        poisoned_y_train = y_train.clone()
+
+        for poison_idx in idxs_to_poison:
+            flip_candidates = list(set(target_labels) - set([y_train[poison_idx]]))
+            flipped_label = flip_candidates[torch.randperm(len(flip_candidates))[0]]
+            poisoned_y_train[poison_idx] = flipped_label
+        
         return poisoned_y_train
 
     def update(self,global_model:Trainer,delay:int) -> Update:
         # make copy of the gloabl model
         client_copy = global_model.clone()
         client_copy.set_state(global_model.get_state())
-
-        if self.malicious:
-            y_train = self.poison_data()
-        else:
-            y_train = self.y_train
-
-        avg_loss = client_copy.fit(self.x_train, y_train, self.n_train_epoch)
+        avg_loss = client_copy.fit(self.x_train, self.y_train, self.n_train_epoch)
         train_size = len(self.x_train)
         new_state = client_copy.get_state()
         train_acc_score = accuracy_score(self.y_train, client_copy.predict(self.x_train))

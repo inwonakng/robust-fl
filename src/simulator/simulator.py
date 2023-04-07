@@ -15,7 +15,6 @@ from .loader import load_trainer,load_aggregator,load_dataset
 np.random.seed(0)
 torch.manual_seed(0)
 
-
 class Simulator:
     def __init__(
         self,
@@ -134,9 +133,6 @@ class Simulator:
         self.n_delay_max = n_delay_max if type(n_delay_max) == int else int(n_delay_max * n_clients_per_round)
         self.max_delay = max_delay
         
-
-        # return Scheduler(self.clients,self.n_delay_min,self.n_delay_max)
-    
     def _initiate_scheduler(self) -> Scheduler:
         return Scheduler(
             self.clients,
