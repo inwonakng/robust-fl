@@ -6,11 +6,11 @@ from models import Trainer, MODEL_MAPPING
 from dataset import DATASET_MAPPING
 
 
-def load_trainer(model_name:str,model_args:dict) -> Trainer:
+def load_trainer(model_name:str, model_args:dict) -> Trainer:
     return Trainer(MODEL_MAPPING[model_name],**model_args)
 
-def load_aggregator(agg_name:str,agg_args:dict) -> Aggregator:
+def load_aggregator(agg_name:str, agg_args:dict) -> Aggregator:
     return AGG_MAPPING[agg_name](**agg_args)
 
-def load_dataset(dataset_name:str) -> Union[torch.Tensor,torch.Tensor,torch.Tensor,torch.Tensor]:
-    return DATASET_MAPPING[dataset_name]()
+def load_dataset(dataset_name:str, dataset_args:dict) -> Union[torch.Tensor,torch.Tensor,torch.Tensor,torch.Tensor]:
+    return DATASET_MAPPING[dataset_name](**dataset_args)

@@ -13,6 +13,10 @@ Class project for Security and Privacy in Machine Learning
 ### Aggregators:
 - FedAvg
 - RFA (Robust Federated Aggregation using geometric mean)
+    - Whole RFA
+    - Per-Cluster RFA
+- Krum
+
 
 ## Usage
 
@@ -59,9 +63,9 @@ Or you can create a conda environment with the specified python version by runni
 
 ### Running the code:
 
-After activating the environment, move into `src` and run 
+After activating the environment, you can run the following command from the root folder of the project to run an experiment.
 ```
-python main.py {CONFIG_PATH}.yaml
+python src/main.py {CONFIG_PATH}.yaml
 ```
 
 Example configuration for FedAvg with no stragglers can be found in [src/configurations/MNIST/MLP/FedAvg/no_straggle.yaml](src/configurations/MNIST/MLP/FedAvg/no_straggle.yaml)

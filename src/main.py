@@ -4,11 +4,12 @@ import logging
 
 from simulator import Simulator
 
-
 parser = ArgumentParser()
 parser.add_argument('-C','--config',required=True)
 args = parser.parse_args()
-
 config = yaml.safe_load(open(args.config))
+
 sim = Simulator(**config)
-sim.run(config['sim_epoch'])
+sim.run(
+    n_epoch = config['sim_epoch'],        
+)

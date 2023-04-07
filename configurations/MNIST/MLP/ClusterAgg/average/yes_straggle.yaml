@@ -1,4 +1,4 @@
-output_dir: output/MNIST/MLP/FedAvg/no_straggle
+output_dir: output/MNIST/MLP/ClusterAgg/average/yes_straggle
 sim_epoch: 200
 dataset_args:
   dataset_name: MNIST
@@ -19,7 +19,8 @@ model_args:
     lr: 0.01
     weight_decay: 0.001
 agg_args:
-  agg_type: FedAvg
+  agg_type: ClusterAgg
+  agg_mode: average
 client_args:
   poison_ratio: 1
   n_train_epoch: 1
@@ -27,6 +28,6 @@ scheduler_args:
   n_clients: 1000
   n_malicious_clients: .3
   n_clients_per_round: 20
-  max_delay: 0
+  max_delay: 10
   n_delay_min: 0
-  n_delay_max: 0
+  n_delay_max: 10

@@ -1,6 +1,6 @@
 dataset_name: MNIST
-output_dir: output/MNIST/MLP/RFA/whole/no_straggle
-sim_epoch: 1000
+output_dir: output/MNIST/MLP/RFA/per_component/5_straggle
+sim_epoch: 200
 model_args:
   model_type: MLP
   in_features: 784
@@ -16,13 +16,13 @@ model_args:
     weight_decay: 0.001
 agg_args:
   agg_type: RFA
-  per_component: False
+  per_component: True
 client_args:
   poison_data: False
 scheduler_args:
-  n_clients: 100
+  n_clients: 1000
   n_malicious_clients: 0
-  n_clients_per_round: 10
-  max_delay: 5
+  n_clients_per_round: 20
+  max_delay: 10
   n_delay_min: 0
-  n_delay_max: 5
+  n_delay_max: 10

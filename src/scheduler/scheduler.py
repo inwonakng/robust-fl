@@ -1,6 +1,7 @@
 from typing import List, Union
 import numpy as np
 import logging
+import torch
 
 from client import Client
 
@@ -35,7 +36,7 @@ class Scheduler:
         Returns:
             List[Client]: A list of clients ids who is not in pending_clients.
         """
-        picked_clients = [self.clients[i] for i in np.random.permutation(len(self.clients))[:self.n_clients_per_round]]
+        picked_clients = [self.clients[i] for i in torch.randperm(len(self.clients))[:self.n_clients_per_round]]
         not_pending_clients = [c for c in picked_clients if not c.id in pending_clients]
         
         return not_pending_clients
@@ -53,8 +54,8 @@ class Scheduler:
             np.array: Returns an array of integers denoting the number of rounds the client will withhold from global server
         """
         if self.use_delay:
-            n_delay = np.random.randint(self.n_delay_min, self.n_delay_max if self.n_delay_max < n_clients else n_clients)
-            # delays = np.random.randint(1, self.max_delay, n_delay)[:n_clients]
+            n_delay = np.random.randint(self.n_delay_min, self.n_delay_max)
+            if n_delay > n_clients: n_delay = n_clients
             delays = np.random.permutation(
                 np.concatenate([
                     np.zeros(n_clients - n_delay),

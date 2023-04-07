@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 
 from client import Client
-from update import UpdateTracker
+from update import UpdateTracker, Update
 from scheduler import Scheduler
 from .loader import load_trainer,load_aggregator,load_dataset
 
@@ -19,39 +19,59 @@ torch.manual_seed(0)
 class Simulator:
     def __init__(
         self,
-        dataset_name:str,
         output_dir: str,
+        dataset_args:dict,
         model_args:dict,
         agg_args:dict,
         client_args:dict,
         scheduler_args: dict, 
         sim_epoch: int = 1000,
     ) -> None:
-        """Constructs a simulator class that holds environment settings.
+        """_summary_
 
         Args:
-            dataset_name (str): Name of dataset to use.
-        """        
+            output_dir (str): Output directory to save log file and results.
+            dataset_args (dict): Arguments to pass into dataset loader.
+            model_args (dict): Arguments to pass into model constructor.
+            agg_args (dict): Arguments to pass into aggregator.
+            client_args (dict): Arguments to pass into client creation.
+            scheduler_args (dict): Arguments to pass into the update scheduler.
+            sim_epoch (int, optional): Number of epochs to run simulation for. Defaults to 1000.
+        """
 
         # set up logging
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        logging.basicConfig(filename=f'{output_dir}/run.log', filemode='w', format='%(levelname)s - %(message)s', level=logging.DEBUG)
-        
+        logging.basicConfig(filename=f'{output_dir}/run.log', filemode='w', format='%(name)s %(levelname)s - %(message)s', level=logging.DEBUG)
 
-        x_train,y_train,x_test,y_test = load_dataset(dataset_name)
-        self.x_train = x_train
-        self.y_train = y_train
-        self.x_test = x_test
-        self.y_test = y_test
+        # numba logger is annoying
+        numba_logger = logging.getLogger('numba')
+        numba_logger.setLevel(logging.WARNING)
 
-
+        self._initiate_dataset(**dataset_args)        
         self._initiate_model(**model_args)
         self._initiate_aggregator(**agg_args)
         self._set_scheduler_options(**scheduler_args)
         self._initiate_clients(**client_args)
+
+
+        self.report = []
+        self.scheduler = self._initiate_scheduler()
+        self.update_tracker = UpdateTracker()
+        self.sim_epoch = sim_epoch
         
         logging.debug('Simulator -- successfully constructed.')
+
+    def _initiate_dataset(
+        self,
+        dataset_name: str,
+        **dataset_args,
+    ) -> None:
+        x_train,y_train,x_test,y_test = load_dataset(dataset_name, dataset_args)
+        self.x_train = x_train
+        self.y_train = y_train
+        self.x_test = x_test
+        self.y_test = y_test
 
     def _initiate_model(
         self,
@@ -128,23 +148,18 @@ class Simulator:
 
     def _initiate_clients(
         self,
-        poison_data: bool = False,
+        poison_ratio: float = 0.1,
+        n_train_epoch: int = 5,
     ) -> None:
         """Creates the clients to consider
 
         Args:
-            poison_data (bool, optional): Whether to use data poisoning. Defaults to False.
+            poison_ratio (float, optional): ratio of data points to flip. Defaults to 0.1.
         """
-
-        # set number of malicious clients per round 
-        # self.n_clients = n_clients
+        
         is_malicious = [True] * self.n_malicious_clients + [False] * (self.n_clients - self.n_malicious_clients)
 
-
-        self.poison_data = poison_data
-
-        # instantiate the clients. 
-        train_idxs = np.random.permutation(len(self.x_train))
+        train_idxs = torch.randperm(len(self.x_train))
         n_data_per_client = len(self.x_train) // self.n_clients
 
         self.clients = [
@@ -155,58 +170,81 @@ class Simulator:
                 y_train = self.y_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
                 x_test = self.x_test,
                 y_test = self.y_test,
+                n_train_epoch = n_train_epoch,
+                poison_ratio = poison_ratio,
             ) for i,is_mal in enumerate(is_malicious)
         ]
     
+    def step(
+        self,
+    ) -> List[Update]:
+        # Step 1. Pick clients to send job to and compute delays
+        picked_clients,delays = self.scheduler.step(self.update_tracker.delayed_client_ids)
+
+        # Step 2. Train model on each client 
+        for c,d in zip(picked_clients,delays):
+            self.update_tracker.add(c.update(self.global_model,d))
+
+        # Step 3. Check update queue to see if there are updates that are done. If not, increment their counter
+        to_update_global = self.update_tracker.step()
+
+        return picked_clients, to_update_global
 
     def run(
         self,
-        n_epoch: int,
+        n_epoch: int = None,
     ):
         """Runs the simluation for specified nubmer of rounds.
 
         Args:
             n_epoch (int): Nubmer of rounds to run in simulation.
         """
-        report = []
-        scheduler = self._initiate_scheduler()
-        update_tracker = UpdateTracker()
-        for epoch in tqdm(range(n_epoch), desc='running simulation...', leave=True):
-            # Step 1. Pick clients to send job to and compute delays
-            picked_clients,delays = scheduler.step(update_tracker.delayed_client_ids)
 
-            # Step 2. Train model on each client 
-            for c,d in zip(picked_clients,delays):
-                update_tracker.add(c.update(self.global_model,d))
-            
-            # Step 3. Check update queue to see if there are updates that are done. If not, increment their counter
-            to_update_global = update_tracker.step()
-            
+        if n_epoch is None: n_epoch = self.sim_epoch
+
+        for epoch in tqdm(
+            range(n_epoch), 
+            desc=f'Running {str(self.output_dir)}', 
+            leave=True,
+        ):
+            picked_clients, to_update_global = self.step()
             avg_losses = [u.avg_loss for u in to_update_global]
             train_acc_scores = [u.train_acc_score for u in to_update_global]
             test_acc_scores = [u.test_acc_score for u in to_update_global]
 
             logging.debug(f'Simulator -- got {len(to_update_global)} updates to incorporate')
-            logging.debug(f'Simulator -- avg loss: {sum(avg_losses) / len(to_update_global)}')
-            logging.debug(f'Simulator -- client avg train acc: {sum(train_acc_scores) / len(train_acc_scores)}')
-            logging.debug(f'Simulator -- client avg test acc: {sum(test_acc_scores) / len(test_acc_scores)}')
+            
+            if len(to_update_global):
+                # only update the global model if we have any updates
+                avg_train_acc = sum(train_acc_scores) / len(train_acc_scores)
+                avg_test_acc = sum(test_acc_scores) / len(test_acc_scores)
+                logging.debug(f'Simulator -- avg loss: {sum(avg_losses) / len(to_update_global)}')
+                logging.debug(f'Simulator -- client avg train acc: {sum(train_acc_scores) / len(train_acc_scores)}')
+                logging.debug(f'Simulator -- client avg test acc: {sum(test_acc_scores) / len(test_acc_scores)}')
 
-            # Step 4. Update the global model with the finished local updates
-            new_state = self.aggregator.aggregate(self.global_model, to_update_global)
-            self.global_model.set_state(new_state)
+                # Step 4. Update the global model with the finished local updates
+                new_state = self.aggregator(self.global_model, to_update_global)
+
+                if new_state is not None:
+                    self.global_model.set_state(new_state)
+            else:
+                avg_train_acc = 0
+                avg_test_acc = 0
+            
             pred = self.global_model.predict(self.x_test)
             logging.debug(f'Simulator -- Global model test acc: {accuracy_score(self.y_test, pred)}')
 
-            report.append({
+            self.report.append({
                 'round': epoch,
                 'client_req': len(picked_clients),
                 'new_updates': len(to_update_global),
                 'avg_loss': avg_losses,
-                'queue_size': len(update_tracker.delayed_client_ids),
-                # 'model_pred': pred,
+                'queue_size': len(self.update_tracker.delayed_client_ids),
                 'client_train_acc': train_acc_scores,
                 'client_test_acc': test_acc_scores,
+                'client_train_acc_avg': avg_train_acc,
+                'client_test_acc_avg': avg_test_acc,
                 'accuracy_score': accuracy_score(self.y_test, pred)
             })
         
-        pd.DataFrame(report).to_csv(self.output_dir/'report.csv',index=False)
+        pd.DataFrame(self.report).to_csv(self.output_dir/'report.csv',index=False)
