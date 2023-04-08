@@ -14,7 +14,7 @@ class Client:
         y_train: torch.Tensor,
         x_test: torch.Tensor,
         y_test: torch.Tensor,
-        n_train_epoch: int = 5,
+        n_train_epoch: int = 1,
         batch_size: int = 100,
         poison_ratio: float = 0.1,
     ):
