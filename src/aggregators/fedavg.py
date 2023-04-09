@@ -5,6 +5,8 @@ from models import Trainer
 from update import Update
 from aggregators import Aggregator
 
+from .utils import weighted_average
+
 
 class FedAvg(Aggregator):
     def __init__(
@@ -17,13 +19,12 @@ class FedAvg(Aggregator):
         global_model: Trainer,
         updates:List[Update],
     ) -> dict:
-        
         new_global_state = global_model.get_state()
-        for k in new_global_state:
-            new_global_state[k] = torch.stack([
-                u.new_state[k]
-                for u in updates
-            ]).mean(0)
+        model_weights, update_weights = self.parse_updates(updates)
 
+        # print(update_weights.sum())
+
+        for key, components in zip(new_global_state.keys(), zip(*model_weights)):
+            new_global_state[key] = weighted_average(components, update_weights)
         return new_global_state
 
