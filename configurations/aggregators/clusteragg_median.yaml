@@ -1,0 +1,7 @@
+agg_args:
+  agg_name: ClusterAgg
+  agg_mode: median
+  reducer_args:
+    reducer_type: UMAP
+  cluster_detector_args:
+    detector_type: HDBSCAN

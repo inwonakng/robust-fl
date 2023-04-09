@@ -1,0 +1,27 @@
+dataset_args:
+  dataset_name: CIFAR
+  target_labels:
+    - 0
+    - 1
+model_args:
+  model_name: ConvNet
+  in_features: 
+    - 32
+    - 32
+  conv_shapes:
+    - 16
+    - 16
+  kernel_sizes: 
+    - 3
+    - 3
+  out_classes: 2
+  hidden_layers:
+    - 100
+    - 100
+  dropout: 0.1
+  loss_name: CrossEntropyLoss 
+  # loss_args: {}
+  optimizer_name: Adam
+  optimizer_args:
+    lr: 0.001
+    weight_decay: 0.001

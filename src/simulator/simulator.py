@@ -19,89 +19,53 @@ torch.manual_seed(0)
 class Simulator:
     def __init__(
         self,
-        output_dir: str,
         dataset_args:dict,
         model_args:dict,
         agg_args:dict,
         client_args:dict,
         scheduler_args: dict, 
-        sim_epoch: int = 1000,
+        output_dir: str = None,
     ) -> None:
         """_summary_
 
         Args:
-            output_dir (str): Output directory to save log file and results.
             dataset_args (dict): Arguments to pass into dataset loader.
             model_args (dict): Arguments to pass into model constructor.
             agg_args (dict): Arguments to pass into aggregator.
             client_args (dict): Arguments to pass into client creation.
             scheduler_args (dict): Arguments to pass into the update scheduler.
-            sim_epoch (int, optional): Number of epochs to run simulation for. Defaults to 1000.
+            output_dir (str): Output directory to save log file and results. Defaults to None.
         """
 
         # set up logging
-        self.output_dir = Path(output_dir)
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        logging.basicConfig(filename=f'{output_dir}/run.log', filemode='w', format='%(name)s %(levelname)s - %(message)s', level=logging.DEBUG)
+        if output_dir:
+            self.output_dir = Path(output_dir)
+            self.output_dir.mkdir(parents=True, exist_ok=True)
+            logging.basicConfig(filename=f'{output_dir}/run.log', filemode='w', format='%(name)s %(levelname)s - %(message)s', level=logging.DEBUG)
+        else:
+            self.output_dir = None
 
         # numba logger is annoying
         numba_logger = logging.getLogger('numba')
         numba_logger.setLevel(logging.WARNING)
 
-        self._initiate_dataset(**dataset_args)        
-        self._initiate_model(**model_args)
-        self._initiate_aggregator(**agg_args)
-        self._set_scheduler_options(**scheduler_args)
-        self._initiate_clients(**client_args)
-
-
-        self.report = []
-        self.scheduler = self._initiate_scheduler()
-        self.update_tracker = UpdateTracker()
-        self.sim_epoch = sim_epoch
-        
-        logging.debug('Simulator -- successfully constructed.')
-
-    def _initiate_dataset(
-        self,
-        dataset_name: str,
-        **dataset_args,
-    ) -> None:
-        x_train,y_train,x_test,y_test = load_dataset(dataset_name, dataset_args)
+        x_train,y_train,x_test,y_test = load_dataset(**dataset_args)        
         self.x_train = x_train
         self.y_train = y_train
         self.x_test = x_test
         self.y_test = y_test
 
-    def _initiate_model(
-        self,
-        model_type: str,
-        **model_args,
-    ) -> None:
-        """Instantiates the model object
+        self.global_model = load_trainer(**model_args)
+        self.aggregator = load_aggregator(**agg_args)
 
-        Args:
-            model_type (str): Name of model to use.
-            model_args (dict): Arguments to pass into the model constructor.
-        """
-        # self.model_type = model_type
-        # self.model_args = model_args
-        self.global_model = load_trainer(model_type, model_args)
+        self._set_scheduler_options(**scheduler_args)
+        self._initiate_clients(**client_args)
 
-    def _initiate_aggregator(
-            self,
-            agg_type: str,
-            **agg_args
-    ) -> None:
-        """Instantiates the aggregator object
-
-        Args:
-            agg_type (str): Name of aggregator to use.
-            agg_args (dict): Arguments to pass into the aggregator constructor.
-        """
-        self.agg_type = agg_type
-        self.agg_args = agg_args
-        self.aggregator = load_aggregator(agg_type, agg_args)
+        self.report = []
+        self.scheduler = self._initiate_scheduler()
+        self.update_tracker = UpdateTracker()
+        
+        logging.debug('Simulator -- successfully constructed.')
 
     def _set_scheduler_options(
         self,
@@ -130,13 +94,10 @@ class Simulator:
         self.n_clients_per_round = n_clients_per_round if type(n_clients_per_round) == int else int(n_clients_per_round * n_clients)
         
         # set ratio of stragglers per round
-        self.n_delay_min = n_delay_min if type(n_delay_min) == int else int(n_delay_min * n_clients_per_round)
-        self.n_delay_max = n_delay_max if type(n_delay_max) == int else int(n_delay_max * n_clients_per_round)
+        self.n_delay_min = n_delay_min if type(n_delay_min) == int else int(n_delay_min * self.n_clients_per_round)
+        self.n_delay_max = n_delay_max if type(n_delay_max) == int else int(n_delay_max * self.n_clients_per_round)
         self.max_delay = max_delay
         
-
-        # return Scheduler(self.clients,self.n_delay_min,self.n_delay_max)
-    
     def _initiate_scheduler(self) -> Scheduler:
         return Scheduler(
             self.clients,
@@ -148,15 +109,14 @@ class Simulator:
 
     def _initiate_clients(
         self,
-        poison_ratio: float = 0.1,
-        n_train_epoch: int = 5,
+        n_train_epoch: int = 1,
     ) -> None:
         """Creates the clients to consider
 
         Args:
-            poison_ratio (float, optional): ratio of data points to flip. Defaults to 0.1.
-        """
-        
+            n_train_epoch (int, optional): Number of epochs each client should train for. Defaults to 1.
+        """        
+
         is_malicious = [True] * self.n_malicious_clients + [False] * (self.n_clients - self.n_malicious_clients)
 
         train_idxs = torch.randperm(len(self.x_train))
@@ -170,8 +130,8 @@ class Simulator:
                 y_train = self.y_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
                 x_test = self.x_test,
                 y_test = self.y_test,
+                valid_labels = self.y_train.unique().tolist(),
                 n_train_epoch = n_train_epoch,
-                poison_ratio = poison_ratio,
             ) for i,is_mal in enumerate(is_malicious)
         ]
     
@@ -192,21 +152,22 @@ class Simulator:
 
     def run(
         self,
-        n_epoch: int = None,
+        n_epoch: int,
     ):
+        
         """Runs the simluation for specified nubmer of rounds.
 
         Args:
             n_epoch (int): Nubmer of rounds to run in simulation.
         """
 
-        if n_epoch is None: n_epoch = self.sim_epoch
-
         for epoch in tqdm(
             range(n_epoch), 
             desc=f'Running {str(self.output_dir)}', 
             leave=True,
         ):
+            
+            logging.debug(f'Simulator -- Epoch: {epoch+1}')
             picked_clients, to_update_global = self.step()
             avg_losses = [u.avg_loss for u in to_update_global]
             train_acc_scores = [u.train_acc_score for u in to_update_global]
@@ -227,6 +188,9 @@ class Simulator:
 
                 if new_state is not None:
                     self.global_model.set_state(new_state)
+                    logging.debug('Simulator -- global model updated with new weights')
+                else:
+                    logging.debug('Simulator -- No new weights to apply')
             else:
                 avg_train_acc = 0
                 avg_test_acc = 0
@@ -246,5 +210,7 @@ class Simulator:
                 'client_test_acc_avg': avg_test_acc,
                 'accuracy_score': accuracy_score(self.y_test, pred)
             })
-        
-        pd.DataFrame(self.report).to_csv(self.output_dir/'report.csv',index=False)
+        logging.debug('Simulator -- Simulation Complete')
+        if self.output_dir:
+            pd.DataFrame(self.report).to_csv(self.output_dir/'report.csv',index=False)
+            logging.debug('Simulator -- saved results')

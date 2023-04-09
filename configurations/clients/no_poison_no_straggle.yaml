@@ -1,0 +1,9 @@
+client_args:
+  n_train_epoch: 2
+scheduler_args:
+  n_clients: 100
+  n_clients_per_round: 10
+  n_malicious_clients: 0
+  max_delay: 0
+  n_delay_min: 0
+  n_delay_max: 0

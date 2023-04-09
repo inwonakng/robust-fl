@@ -24,4 +24,4 @@ class MLP(nn.Module):
         ])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return torch.sigmoid(self.model(x))
+        return torch.softmax(self.model(x), dim=1)

@@ -72,8 +72,11 @@ Or you can create a conda environment with the specified python version by runni
 ### Running the code:
 
 After activating the environment, you can run the following command from the root folder of the project to run an experiment.
+
+Notice that the aggregator configuration and base configuration are separated into two files to avoid having to write repetive settings.
+
 ```
-python src/main.py {CONFIG_PATH}.yaml
+python src/main.py {BASE_CONFIG_PATH}.yaml {AGGREGATOR_CONFIG_PATH}.yaml
 ```
 
 Example configuration for FedAvg with no stragglers can be found in [src/configurations/MNIST/MLP/FedAvg/no_straggle.yaml](src/configurations/MNIST/MLP/FedAvg/no_straggle.yaml)
