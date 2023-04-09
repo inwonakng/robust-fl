@@ -6,16 +6,21 @@ Class project for Security and Privacy in Machine Learning
 
 ### Dataset:
 - MNIST
+- CIFAR
 
 ### Models:
 - MLP
+- ConvNet
 
 ### Aggregators:
 - FedAvg
 - RFA (Robust Federated Aggregation using geometric mean)
     - Whole RFA
     - Per-Cluster RFA
-- Krum
+- ClusterAgg (Using UMAP and Affinity Propagation)
+    - Median
+    - Average
+<!-- - Krum -->
 
 
 ## Usage

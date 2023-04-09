@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from sklearn.metrics import accuracy_score
+import time
 
 from client import Client
 from update import UpdateTracker, Update
@@ -183,7 +184,9 @@ class Simulator:
                 logging.debug(f'Simulator -- client avg test acc: {sum(test_acc_scores) / len(test_acc_scores)}')
 
                 # Step 4. Update the global model with the finished local updates
+                start = time.time()
                 new_state = self.aggregator(self.global_model, to_update_global)
+                agg_time = time.time() - start
 
                 if new_state is not None:
                     self.global_model.set_state(new_state)
@@ -207,7 +210,8 @@ class Simulator:
                 'client_test_acc': test_acc_scores,
                 'client_train_acc_avg': avg_train_acc,
                 'client_test_acc_avg': avg_test_acc,
-                'accuracy_score': accuracy_score(self.y_test, pred)
+                'accuracy_score': accuracy_score(self.y_test, pred),
+                'aggregator_time': agg_time,
             })
         logging.debug('Simulator -- Simulation Complete')
         if self.output_dir:
