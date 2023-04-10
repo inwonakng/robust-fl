@@ -63,6 +63,12 @@ pip install numpy pandas matplotlib seaborn
 
 Alternatively, you can re-use the `environment.yml` file to re-create the conda environment. If you are on a GPU enabled device, you may need to re-install pytorch and torchvision for the specific cuda version. Check [here](https://pytorch.org/get-started/locally/) for more instructions.
 
+To recreate an environment from the conda file, run 
+
+```
+conda create -n {ENV_NAME} --file=environment.yml
+```
+
 
 #### Using python venv
 run `python3 -m venv venv` in the root folder of the project.
@@ -81,10 +87,13 @@ After activating the environment, you can run the following command from the roo
 Notice that the aggregator configuration and base configuration are separated into two files to avoid having to write repetive settings.
 
 ```
-python src/main.py {BASE_CONFIG_PATH}.yaml {AGGREGATOR_CONFIG_PATH}.yaml
+python src/main.py \
+    --agg_config={AGGREGATOR_CONFIG_FILE} \
+    --client_config={CLIENTS_CONFIG_FILE} \
+    --data_config={DATASET_CONFIG_FILE}
 ```
 
-Example configuration for FedAvg with no stragglers can be found in [src/configurations/MNIST/MLP/FedAvg/no_straggle.yaml](src/configurations/MNIST/MLP/FedAvg/no_straggle.yaml)
+You can also refer to the sample scripts in [scripts](scripts) for examples.
 
 
 ## Related Works

@@ -29,7 +29,7 @@ class Aggregator:
             update_weights.append(u.train_size)
             update_delays.append(u.counter)
 
-        update_weights = normalize_weights(update_weights)
+        update_weights = normalize_weights(update_weights).to(points[0][0].device)
 
         # TODO: do something wtih the delays to modify the model weights. 
 
