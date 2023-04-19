@@ -11,7 +11,7 @@ class ConvNet(nn.Module):
         kernel_sizes: List[int],
         hidden_layers: List[int],
         dropout: float,
-        activation_func: nn.Module = nn.ReLU,
+        activation_func: type[nn.Module] = nn.ReLU,
         activation_args: dict = {},
     ):
         super(ConvNet, self).__init__()

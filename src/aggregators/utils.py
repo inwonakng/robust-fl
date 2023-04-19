@@ -50,6 +50,28 @@ def weighted_average(
 
     return w_avg
 
+
+@torch.no_grad()
+def random_sample_average(
+    model_weights: torch.Tensor, 
+    global_weights: torch.Tensor,
+    p: float,
+) -> Union[List[torch.Tensor], torch.Tensor]:
+    # normalize update_weights so we don't have to divid later. If they are already normalized it does nothing.
+    
+    size = model_weights.size()
+    selected_params = torch.zeros(size)
+    rand_mask = torch.rand(model_weights.size()) < p
+    selected_params[rand_mask] = model_weights[rand_mask]
+
+    keep_original_mask = rand_mask.sum(0) == 0
+    final_params = selected_params.sum(0)
+    final_params[~keep_original_mask] = final_params[~keep_original_mask] / rand_mask.sum(0)[~keep_original_mask]
+    final_params[keep_original_mask] = global_weights[keep_original_mask]
+    
+    return final_params
+
+
 @torch.no_grad()
 def geometric_median_objective(
     median: Union[List[torch.Tensor], torch.Tensor], 

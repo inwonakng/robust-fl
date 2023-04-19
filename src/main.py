@@ -1,8 +1,10 @@
+from torch.cuda import is_available
 import yaml
 from argparse import ArgumentParser
 import logging
 from pathlib import Path
 import warnings
+import torch
 
 from simulator import Simulator
 
@@ -31,6 +33,7 @@ data_config = yaml.safe_load(open(data_config_file))
 # model_config = yaml.safe_load(open(model_config_file))
 
 
+
 sim = Simulator(
     **agg_config,
     **client_config,
@@ -38,6 +41,10 @@ sim = Simulator(
     # **model_config,
     output_dir = Path('output') / agg_config_file.stem / data_config_file.stem / client_config_file.stem
 )
+
+# set the default device
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.set_default_device(device)
 sim.run(
     n_epoch = args.sim_epoch
 )

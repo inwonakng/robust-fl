@@ -22,7 +22,7 @@ class Aggregator:
     def parse_updates(
         self,
         updates:List[Update]
-    ) -> Tuple[List[torch.Tensor], torch.tensor, List[int]]:
+    ) -> Tuple[List[torch.Tensor], torch.Tensor]:
         points, update_weights, update_delays = [], [], []
         for u in updates:
             points.append(list(u.new_state.values()))

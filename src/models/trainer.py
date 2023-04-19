@@ -58,7 +58,7 @@ class Trainer:
     def fit(
         self, 
         x: torch.Tensor, 
-        y: torch.Tensor, 
+        y: torch.Tensor,
         n_epoch: int = 1, 
         batch_size:int = 100, 
         verbose:bool=False

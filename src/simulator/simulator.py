@@ -1,3 +1,4 @@
+from re import A
 from typing import Union, List
 import torch
 from tqdm.auto import tqdm
@@ -16,15 +17,17 @@ from .loader import load_trainer,load_aggregator,load_dataset
 np.random.seed(0)
 torch.manual_seed(0)
 
+
+
 class Simulator:
     def __init__(
         self,
-        dataset_args:dict,
-        model_args:dict,
-        agg_args:dict,
-        client_args:dict,
-        scheduler_args: dict, 
-        output_dir: str = None,
+        dataset_args: dict,
+        model_args: dict,
+        agg_args: dict,
+        client_args: dict,
+        scheduler_args: dict,
+        output_dir: str,
     ) -> None:
         """_summary_
 
@@ -36,6 +39,12 @@ class Simulator:
             scheduler_args (dict): Arguments to pass into the update scheduler.
             output_dir (str): Output directory to save log file and results. Defaults to None.
         """
+        # model_args = cfg["model_args"]
+        # agg_args = cfg["agg_args"]
+        # client_args = cfg["client_args"]
+
+        # scheduler_args = cfg["scheduler_args"]
+        # dataset_args = cfg["dataset_args"]
 
         # set up logging
         if output_dir:
@@ -217,3 +226,11 @@ class Simulator:
         if self.output_dir:
             pd.DataFrame(self.report).to_csv(self.output_dir/'report.csv',index=False)
             logging.debug('Simulator -- saved results')
+
+
+def update_log(simulator: Simulator, log_dict:dict ,to_log_dict: dict):
+    for key, value in to_log_dict.items():
+        if callable(value):
+            log_dict[key] = value(simulator)
+        else:
+            log_dict[key] = value

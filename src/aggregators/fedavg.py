@@ -22,9 +22,11 @@ class FedAvg(Aggregator):
         new_global_state = global_model.get_state()
         model_weights, update_weights = self.parse_updates(updates)
 
+
         # print(update_weights.sum())
 
         for key, components in zip(new_global_state.keys(), zip(*model_weights)):
+            print(components)
             new_global_state[key] = weighted_average(components, update_weights)
         return new_global_state
 
