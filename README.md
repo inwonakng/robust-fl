@@ -90,7 +90,7 @@ Notice that the aggregator configuration and base configuration are separated in
 python src/main.py \
     --agg_config={AGGREGATOR_CONFIG_FILE} \
     --client_config={CLIENTS_CONFIG_FILE} \
-    --data_config={DATASET_CONFIG_FILE}
+    --learning_config={DATASET_CONFIG_FILE}
 ```
 
 You can also refer to the sample scripts in [scripts](scripts) for examples.

@@ -48,7 +48,7 @@ class Client:
         logging.debug(f'Client {self.id} -- successfully poisoned data')
         return poisoned_y_train
 
-    def update(self,global_model:Trainer,delay:int) -> Update:
+    def update(self, global_model:Trainer,delay:int) -> Update:
         logging.debug(f'Client {self.id} -- received request for update. Update #{self.update_counter}')
         # make copy of the gloabl model
         client_copy = global_model.clone()

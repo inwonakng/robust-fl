@@ -18,7 +18,6 @@ np.random.seed(0)
 torch.manual_seed(0)
 
 
-
 class Simulator:
     def __init__(
         self,
@@ -39,12 +38,6 @@ class Simulator:
             scheduler_args (dict): Arguments to pass into the update scheduler.
             output_dir (str): Output directory to save log file and results. Defaults to None.
         """
-        # model_args = cfg["model_args"]
-        # agg_args = cfg["agg_args"]
-        # client_args = cfg["client_args"]
-
-        # scheduler_args = cfg["scheduler_args"]
-        # dataset_args = cfg["dataset_args"]
 
         # set up logging
         if output_dir:
@@ -194,7 +187,7 @@ class Simulator:
 
                 # Step 4. Update the global model with the finished local updates
                 start = time.time()
-                new_state = self.aggregator(self.global_model, to_update_global)
+                new_state = self.aggregator(epoch, self.global_model, to_update_global)
                 agg_time = time.time() - start
 
                 if new_state is not None:
@@ -226,11 +219,3 @@ class Simulator:
         if self.output_dir:
             pd.DataFrame(self.report).to_csv(self.output_dir/'report.csv',index=False)
             logging.debug('Simulator -- saved results')
-
-
-def update_log(simulator: Simulator, log_dict:dict ,to_log_dict: dict):
-    for key, value in to_log_dict.items():
-        if callable(value):
-            log_dict[key] = value(simulator)
-        else:
-            log_dict[key] = value

@@ -1,0 +1,4 @@
+agg_args:
+  agg_name: RFA
+  per_component: True
+  use_staleness: True

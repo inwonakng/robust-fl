@@ -1,0 +1,4 @@
+agg_args:
+  agg_name: RandomSampleSimple
+  select_p: 0.3
+  use_staleness: True

@@ -4,3 +4,5 @@ data
 *.log
 src/test.ipynb
 .vscode
+test.ipynb
+src/debug.ipynb

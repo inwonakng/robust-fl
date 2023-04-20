@@ -8,43 +8,23 @@ from aggregators import Aggregator
 from .utils import weighted_average
 from .utils import random_sample_average
 
-
-# class FedAvg(Aggregator):
-#     def __init__(
-#         self,
-#     ) -> None: 
-#         super(FedAvg, self).__init__()
-#     
-#     def aggregate(
-#         self,
-#         global_model: Trainer,
-#         updates:List[Update],
-#     ) -> dict:
-#         new_global_state = global_model.get_state()
-#         model_weights, update_weights = self.parse_updates(updates)
-# 
-#         # print(update_weights.sum())
-# 
-#         for key, components in zip(new_global_state.keys(), zip(*model_weights)):
-#             new_global_state[key] = weighted_average(components, update_weights)
-#         return new_global_state
-
-
-class random_sample_simple(Aggregator):
+class RandomSampleSimple(Aggregator):
     def __init__(
         self,
         select_p: float,
+        **kwargs,
     ) -> None: 
-        super(random_sample_simple, self).__init__()
+        super(RandomSampleSimple, self).__init__(**kwargs)
         self.select_p = select_p
     
     def aggregate(
         self,
+        cur_epoch: int,
         global_model: Trainer,
         updates:List[Update],
     ) -> dict:
         new_global_state = global_model.get_state()
-        model_weights, update_weights = self.parse_updates(updates)
+        model_weights, update_weights = self.parse_updates(cur_epoch, updates)
 
         # make the new set of weights
 
@@ -53,7 +33,5 @@ class random_sample_simple(Aggregator):
             stacked_components = torch.stack(components)
             new_global_state[key] = random_sample_average(stacked_components, new_global_state[key], self.select_p)
 
-
-        # print(update_weights.sum())
         return new_global_state
 

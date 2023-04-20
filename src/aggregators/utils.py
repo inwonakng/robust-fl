@@ -1,5 +1,6 @@
 from typing import List, Union
 import torch
+import numpy as np
 
 """
 Utility functions for geometric-norm RFA.
@@ -34,7 +35,7 @@ def weighted_average(
     model_weights: Union[List[List[torch.Tensor]], List[torch.Tensor], torch.Tensor], 
     update_weights: torch.Tensor
 ) -> Union[List[torch.Tensor], torch.Tensor]:
-    # normalize update_weights so we don't have to divid later. If they are already normalized it does nothing.
+    # normalize update_weights so we don't have to divide later. If they are already normalized it does nothing.
     update_weights = normalize_weights(update_weights)
     w_avg = [
         # each point has two dimensions, and by stacking them we get 3 dimensions
@@ -56,9 +57,7 @@ def random_sample_average(
     model_weights: torch.Tensor, 
     global_weights: torch.Tensor,
     p: float,
-) -> Union[List[torch.Tensor], torch.Tensor]:
-    # normalize update_weights so we don't have to divid later. If they are already normalized it does nothing.
-    
+) -> Union[List[torch.Tensor], torch.Tensor]:    
     size = model_weights.size()
     selected_params = torch.zeros(size)
     rand_mask = torch.rand(model_weights.size()) < p
@@ -112,3 +111,15 @@ def geometric_median(
             break
 
     return median
+
+
+# default reducer for not doing any reducing
+
+class DefaultReducer:
+    def __init__(self) -> None: 
+        return
+    def fit_transform(
+        self, 
+        vectors: Union[torch.Tensor, np.array]
+    ) -> Union[torch.Tensor, np.array]:
+        return vectors

@@ -3,23 +3,25 @@ import torch
 import numpy as np
 from sklearn.decomposition import PCA
 from umap import UMAP
-from sklearn.cluster import AffinityPropagation
+from sklearn.cluster import AffinityPropagation, KMeans
 from hdbscan import HDBSCAN
 
 
 from models import Trainer
 from update import Update
 from aggregators import Aggregator
-from .utils import geometric_median,weighted_average
+from .utils import geometric_median,weighted_average, DefaultReducer
 
 REDUCER_MAPPING = dict(
     PCA = PCA,
-    UMAP = UMAP
+    UMAP = UMAP,
+    DefaultReducer = DefaultReducer
 )
 
 DETECTOR_MAPPING = dict(
     HDBSCAN = HDBSCAN,
-    AffinityPropagation = AffinityPropagation
+    AffinityPropagation = AffinityPropagation,
+    KMeans = KMeans,
 )
 
 class ClusterAgg(Aggregator):
@@ -28,6 +30,7 @@ class ClusterAgg(Aggregator):
         reducer_args: dict,
         cluster_detector_args: dict,
         agg_mode:str = 'average', 
+        **kwargs,
     ) -> None:
         """Creates an instance of RFA aggregator that uses geometric mean.
 
@@ -36,7 +39,7 @@ class ClusterAgg(Aggregator):
             use_clusters (bool, optional): _description_. Defaults to False.
         """
 
-        super(ClusterAgg, self).__init__()
+        super(ClusterAgg, self).__init__(**kwargs)
         self.agg_mode = agg_mode
 
         self.dim_reducer = self._initiate_reducer(**reducer_args)
@@ -46,14 +49,14 @@ class ClusterAgg(Aggregator):
         self, 
         reducer_type: str,
         **reducer_args: dict,
-    ) -> Union[UMAP, PCA]:
+    ) -> Union[UMAP, PCA, DefaultReducer]:
         return REDUCER_MAPPING[reducer_type](**reducer_args)
     
     def _initiate_cluster_detector(
         self,
         detector_type:str,
         **detector_args:dict,
-    ) -> Union[HDBSCAN, AffinityPropagation]:
+    ) -> Union[HDBSCAN, AffinityPropagation, KMeans]:
         return DETECTOR_MAPPING[detector_type](**detector_args)
 
     def combine_weights(
@@ -71,11 +74,12 @@ class ClusterAgg(Aggregator):
 
     def aggregate(
         self,
+        cur_epoch: int,
         global_model: Trainer,
         updates:List[Update],
     ) -> dict:
         new_global_state = global_model.get_state()
-        model_weights, update_weights = self.parse_updates(updates)
+        model_weights, update_weights = self.parse_updates(cur_epoch, updates)
         update_weights = torch.tensor(update_weights).to(model_weights[0][0].device)
         final_agg = []
 

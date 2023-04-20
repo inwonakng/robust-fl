@@ -1,0 +1,9 @@
+agg_args:
+  agg_mode: median
+  agg_name: ClusterAgg
+  use_staleness: True
+  cluster_detector_args:
+    detector_type: KMeans
+    n_clusters: 3
+  reducer_args:
+    reducer_type: DefaultReducer
