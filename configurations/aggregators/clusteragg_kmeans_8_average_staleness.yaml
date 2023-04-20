@@ -1,0 +1,9 @@
+agg_args:
+  agg_name: ClusterAgg
+  agg_mode: average
+  cluster_detector_args:
+  use_staleness: True
+    detector_type: KMeans
+    n_clusters: 8
+  reducer_args:
+    reducer_type: DefaultReducer

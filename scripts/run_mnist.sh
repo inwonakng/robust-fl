@@ -1,14 +1,43 @@
-bash scripts/fedavg.sh configurations/learning/mnist_0_1.yaml
-bash scripts/rfa_whole.sh configurations/learning/mnist_0_1.yaml
-bash scripts/rfa_component.sh configurations/learning/mnist_0_1.yaml
-bash scripts/clusteragg_agglo_average.sh configurations/learning/mnist_0_1.yaml
-bash scripts/clusteragg_agglo_median.sh configurations/learning/mnist_0_1.yaml
-bash scripts/clusteragg_kmeans_average_3.sh configurations/learning/mnist_0_1.yaml
-bash scripts/clusteragg_kmeans_average_5.sh configurations/learning/mnist_0_1.yaml
-bash scripts/clusteragg_kmeans_average_8.sh configurations/learning/mnist_0_1.yaml
-bash scripts/clusteragg_kmeans_median_3.sh configurations/learning/mnist_0_1.yaml
-bash scripts/clusteragg_kmeans_median_5.sh configurations/learning/mnist_0_1.yaml
-bash scripts/clusteragg_kmeans_median_8.sh configurations/learning/mnist_0_1.yaml
-bash scripts/random_sample_simple_0_7.sh configurations/learning/mnist_0_1.yaml
-bash scripts/random_sample_simple_0_5.sh configurations/learning/mnist_0_1.yaml
-bash scripts/random_sample_simple_0_3.sh configurations/learning/mnist_0_1.yaml
+#/usr/bin/bash
+
+learning_config=configurations/learning/mnist_0_1.yaml
+
+aggregator_settings=(
+    # "fedavg"
+    # "rfa_whole"
+    # "rfa_component"
+    "random_sample_simple_0_3_average"
+    # "random_sample_simple_0_5_average"
+    # "random_sample_simple_0_7_average"
+    # "random_sample_simple_0_3_median"
+    # "random_sample_simple_0_5_median"
+    # "random_sample_simple_0_7_median"
+    # "clusteragg_kmeans_3_average"
+    # "clusteragg_kmeans_5_average"
+    # "clusteragg_kmeans_8_average"
+    # "clusteragg_kmeans_3_median"
+    # "clusteragg_kmeans_5_median"
+    # "clusteragg_kmeans_8_median"
+    # "clusteragg_agglo_average"
+    # "clusteragg_agglo_median"
+    # "clusteragg_meanshift_average"
+    # "clusteragg_meanshift_median"
+)
+
+client_settings=(
+    "no_poison_no_straggle"
+    "yes_poison_no_straggle"
+    "no_poison_yes_straggle"
+    "yes_poison_yes_straggle"
+)
+
+for agg_config in "${aggregator_settings[@]}"
+    do 
+    for client_config in "${client_settings[@]}"
+        do
+            python src/main.py \
+                --agg_config="configurations/aggregators/${agg_config}.yaml" \
+                --client_config="configurations/clients/${client_config}.yaml" \
+                --learning_config=$learning_config
+        done
+    done

@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from sklearn.decomposition import PCA
 from umap import UMAP
-from sklearn.cluster import AffinityPropagation, KMeans
+from sklearn.cluster import AffinityPropagation, KMeans, MeanShift
 from hdbscan import HDBSCAN
 
 
@@ -22,6 +22,7 @@ DETECTOR_MAPPING = dict(
     HDBSCAN = HDBSCAN,
     AffinityPropagation = AffinityPropagation,
     KMeans = KMeans,
+    MeanShift = MeanShift, 
 )
 
 class ClusterAgg(Aggregator):
@@ -88,8 +89,8 @@ class ClusterAgg(Aggregator):
             component_clusters = self.cluster_detector.fit_predict(reduced)
 
             cluster_ids = np.unique(component_clusters)
-            if len(cluster_ids) == 1 and cluster_ids[0] == -1:
-                raise Exception('Cluster detector failed to find any valid clusters!')
+            # if len(cluster_ids) == 1 and cluster_ids[0] == -1:
+            #     raise Exception('Cluster detector failed to find any valid clusters!')
 
             cluster_medians = torch.stack([
                 self.combine_weights(

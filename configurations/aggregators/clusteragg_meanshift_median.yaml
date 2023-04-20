@@ -5,4 +5,4 @@ agg_args:
     reducer_type: UMAP
     n_components: 5
   cluster_detector_args:
-    detector_type: AffinityPropagation
+    detector_type: MeanShift

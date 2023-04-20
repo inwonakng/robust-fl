@@ -54,14 +54,13 @@ def weighted_average(
 
 @torch.no_grad()
 def random_sample_average(
-    model_weights: torch.Tensor, 
+    update_weights: torch.Tensor, 
     global_weights: torch.Tensor,
     p: float,
 ) -> Union[List[torch.Tensor], torch.Tensor]:    
-    size = model_weights.size()
-    selected_params = torch.zeros(size)
-    rand_mask = torch.rand(model_weights.size()) < p
-    selected_params[rand_mask] = model_weights[rand_mask]
+    selected_params = torch.zeros(update_weights.size())
+    rand_mask = torch.rand(update_weights.size()) < p
+    selected_params[rand_mask] = update_weights[rand_mask]
 
     keep_original_mask = rand_mask.sum(0) == 0
     final_params = selected_params.sum(0)

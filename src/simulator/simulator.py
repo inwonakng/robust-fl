@@ -127,7 +127,7 @@ class Simulator:
         self.clients = [
             Client(
                 client_id = i,
-                malicious = is_mal,
+                is_malicious = is_mal,
                 x_train = self.x_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
                 y_train = self.y_train[train_idxs[i * n_data_per_client : (i+1) * n_data_per_client]],
                 x_test = self.x_test,
@@ -151,6 +151,9 @@ class Simulator:
         to_update_global = self.update_tracker.step()
 
         return picked_clients, to_update_global
+    
+    def find_client(self, client_id: int) -> Client:
+        return [c for c in self.clients if c.id == client_id][0]
 
     def run(
         self,
@@ -171,16 +174,41 @@ class Simulator:
             
             logging.debug(f'Simulator -- Epoch: {epoch+1}')
             picked_clients, to_update_global = self.step()
-            avg_losses = [u.avg_loss for u in to_update_global]
-            train_acc_scores = [u.train_acc_score for u in to_update_global]
-            test_acc_scores = [u.test_acc_score for u in to_update_global]
-
             logging.debug(f'Simulator -- got {len(to_update_global)} updates to incorporate')
             
+            avg_train_acc = 0
+            avg_test_acc = 0
+            avg_benign_train_acc = 0
+            avg_benign_test_acc = 0
+            avg_malicious_train_acc = 0
+            avg_malicious_test_acc = 0
+
             if len(to_update_global):
                 # only update the global model if we have any updates
-                avg_train_acc = sum(train_acc_scores) / len(train_acc_scores)
-                avg_test_acc = sum(test_acc_scores) / len(test_acc_scores)
+                avg_losses, train_acc_scores, test_acc_scores, is_client_malicious = zip(*[
+                    (
+                        u.avg_loss,
+                        u.train_acc_score,
+                        u.test_acc_score,
+                        self.find_client(u.client_id).is_malicious,
+                    )
+                    for u in to_update_global
+                ])
+
+                avg_losses = torch.tensor(avg_losses).float()
+                train_acc_scores = torch.tensor(train_acc_scores).float()
+                test_acc_scores = torch.tensor(test_acc_scores).float()
+                is_client_malicious = torch.tensor(is_client_malicious).bool()
+                
+                avg_train_acc = train_acc_scores.mean().item()
+                avg_test_acc = test_acc_scores.mean().item()
+                avg_benign_train_acc = train_acc_scores[~is_client_malicious].mean().item()
+                avg_benign_test_acc = train_acc_scores[~is_client_malicious].mean().item()
+
+                if is_client_malicious.any():
+                    avg_malicious_train_acc = train_acc_scores[is_client_malicious].mean().item()
+                    avg_malicious_test_acc = test_acc_scores[is_client_malicious].mean().item()
+
                 logging.debug(f'Simulator -- avg loss: {sum(avg_losses) / len(to_update_global)}')
                 logging.debug(f'Simulator -- client avg train acc: {sum(train_acc_scores) / len(train_acc_scores)}')
                 logging.debug(f'Simulator -- client avg test acc: {sum(test_acc_scores) / len(test_acc_scores)}')
@@ -195,9 +223,7 @@ class Simulator:
                     logging.debug('Simulator -- global model updated with new weights')
                 else:
                     logging.debug('Simulator -- No new weights to apply')
-            else:
-                avg_train_acc = 0
-                avg_test_acc = 0
+
             
             pred = self.global_model.predict(self.x_test)
             logging.debug(f'Simulator -- Global model test acc: {accuracy_score(self.y_test, pred)}')
@@ -212,6 +238,10 @@ class Simulator:
                 'client_test_acc': test_acc_scores,
                 'client_train_acc_avg': avg_train_acc,
                 'client_test_acc_avg': avg_test_acc,
+                'benign_client_train_acc_avg': avg_benign_train_acc,
+                'benign_client_test_acc_avg': avg_benign_test_acc,
+                'malicious_client_train_acc_avg': avg_malicious_train_acc,
+                'malicious_client_test_acc_avg': avg_malicious_test_acc,
                 'accuracy_score': accuracy_score(self.y_test, pred),
                 'aggregator_time': agg_time,
             })

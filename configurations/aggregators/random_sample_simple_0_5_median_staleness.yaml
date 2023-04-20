@@ -1,0 +1,5 @@
+agg_args:
+  agg_name: RandomSampleSimple
+  select_p: 0.5
+  agg_mode: median
+  use_staleness: True

@@ -5,5 +5,5 @@ agg_args:
   cluster_detector_args:
     detector_type: AffinityPropagation
   reducer_args:
-    n_components: 2
     reducer_type: UMAP
+    n_components: 5

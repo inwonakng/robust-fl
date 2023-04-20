@@ -10,7 +10,7 @@ class Client:
     def __init__(
         self, 
         client_id:int, 
-        malicious: bool,
+        is_malicious: bool,
         x_train: torch.Tensor,
         y_train: torch.Tensor,
         x_test: torch.Tensor,
@@ -20,7 +20,7 @@ class Client:
         batch_size: int = 100,
     ):
         self.id = client_id
-        self.malicious = malicious
+        self.is_malicious = is_malicious
         self.x_train = x_train
         self.x_test = x_test
         self.y_test = y_test
@@ -29,7 +29,7 @@ class Client:
         self.batch_size = batch_size
         self.update_counter = 0
 
-        if self.malicious:
+        if self.is_malicious:
             self.y_train = self.flip_labels(y_train)
         else:
             self.y_train = y_train
