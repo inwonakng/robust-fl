@@ -1,4 +1,3 @@
 agg_args:
   agg_name: RandomSampleSimple
-  select_p: 0.5
-  agg_mode: average
+  select_p: 0.3

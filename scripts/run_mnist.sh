@@ -3,15 +3,12 @@
 learning_config=configurations/learning/mnist_0_1.yaml
 
 aggregator_settings=(
-    # "fedavg"
+    # "fedavg"˜
     # "rfa_whole"
     # "rfa_component"
-    "random_sample_simple_0_3_average"
-    # "random_sample_simple_0_5_average"
-    # "random_sample_simple_0_7_average"
-    # "random_sample_simple_0_3_median"
-    # "random_sample_simple_0_5_median"
-    # "random_sample_simple_0_7_median"
+    "random_sample_simple_0_3"
+    # "random_sample_simple_0_5"
+    # "random_sample_simple_0_7"
     # "clusteragg_kmeans_3_average"
     # "clusteragg_kmeans_5_average"
     # "clusteragg_kmeans_8_average"

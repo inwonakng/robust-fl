@@ -1,5 +1,0 @@
-agg_args:
-  agg_name: RandomSampleSimple
-  select_p: 0.3
-  agg_mode: average
-  use_staleness: True
