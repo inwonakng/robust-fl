@@ -32,11 +32,11 @@ class RandomSampleSimple(Aggregator):
             stacked_components = torch.stack(components)
 
             # weight them using given weights
-            weighted_stacked_components = (
-                stacked_components * 
-                update_weights.reshape([len(update_weights)] + [1] * (stacked_components.dim()-1))
-            )
-            new_global_state[key] = random_sample_average(weighted_stacked_components, new_global_state[key], self.select_p)
+            # weighted_stacked_components = (
+            #     stacked_components * 
+            #     update_weights.reshape([len(update_weights)] + [1] * (stacked_components.dim()-1))
+            # )
+            new_global_state[key] = random_sample_average(stacked_components, new_global_state[key], self.select_p)
 
         return new_global_state
 
