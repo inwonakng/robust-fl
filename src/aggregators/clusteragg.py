@@ -89,6 +89,7 @@ class ClusterAgg(Aggregator):
             component_clusters = self.cluster_detector.fit_predict(reduced)
 
             cluster_ids = np.unique(component_clusters)
+
             # if len(cluster_ids) == 1 and cluster_ids[0] == -1:
             #     raise Exception('Cluster detector failed to find any valid clusters!')
 
@@ -98,11 +99,13 @@ class ClusterAgg(Aggregator):
                     update_weights[component_clusters == c],
                 )
                 # ignore clusters labeld as -1
-                for c in np.unique(component_clusters) if c > -1
+                for c in np.unique(component_clusters)
+                #   if c > -1
             ])
             cluster_weights = torch.tensor(
                 np.unique(
-                    component_clusters[component_clusters > -1], 
+                    component_clusters
+                    # component_clusters[component_clusters > -1], 
                     return_counts = True
                 )[1]
             ).to(cluster_medians.device)
