@@ -24,10 +24,10 @@ class RandomSampleSimple(Aggregator):
         updates:List[Update],
     ) -> dict:
         new_global_state = global_model.get_state()
-        model_weights, update_weights = self.parse_updates(cur_epoch, updates)
+        client_weights, update_weights = self.parse_updates(cur_epoch, updates)
 
         # make the new set of weights
-        for key, components in zip(new_global_state.keys(), zip(*model_weights)):
+        for key, components in zip(new_global_state.keys(), zip(*client_weights)):
             # take a random sample
             stacked_components = torch.stack(components)
 

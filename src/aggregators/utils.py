@@ -32,7 +32,7 @@ def l2distance(
 
 @torch.no_grad()
 def weighted_average(
-    model_weights: Union[List[List[torch.Tensor]], List[torch.Tensor], torch.Tensor], 
+    client_weights: Union[List[List[torch.Tensor]], List[torch.Tensor], torch.Tensor], 
     update_weights: torch.Tensor
 ) -> Union[List[torch.Tensor], torch.Tensor]:
     # normalize update_weights so we don't have to divide later. If they are already normalized it does nothing.
@@ -42,11 +42,11 @@ def weighted_average(
         # instead of doing nasty transposing, we can just add matching dims for the weight
         (
             torch.stack(p) 
-            * update_weights.reshape([len(model_weights)] + [1] * p[0].ndim)
+            * update_weights.reshape([len(client_weights)] + [1] * p[0].ndim)
         ).sum(0)
-        for p in zip(*model_weights)
+        for p in zip(*client_weights)
     ]
-    if type(model_weights[0]) == torch.Tensor:
+    if type(client_weights[0]) == torch.Tensor:
         w_avg = torch.stack(w_avg)
 
     return w_avg
@@ -54,13 +54,13 @@ def weighted_average(
 
 @torch.no_grad()
 def random_sample_average(
-    update_weights: torch.Tensor, 
+    client_weights: torch.Tensor, 
     global_weights: torch.Tensor,
     p: float,
 ) -> Union[List[torch.Tensor], torch.Tensor]:    
-    selected_params = torch.zeros(update_weights.size())
-    rand_mask = torch.rand(update_weights.size()) < p
-    selected_params[rand_mask] = update_weights[rand_mask]
+    selected_params = torch.zeros(client_weights.size())
+    rand_mask = torch.rand(client_weights.size()) < p
+    selected_params[rand_mask] = client_weights[rand_mask]
 
     keep_original_mask = rand_mask.sum(0) == 0
     final_params = selected_params.sum(0)
@@ -73,20 +73,20 @@ def random_sample_average(
 @torch.no_grad()
 def geometric_median_objective(
     median: Union[List[torch.Tensor], torch.Tensor], 
-    model_weights: Union[List[List[torch.Tensor]], List[torch.Tensor], torch.Tensor], 
+    client_weights: Union[List[List[torch.Tensor]], List[torch.Tensor], torch.Tensor], 
     update_weights: torch.Tensor
 ) -> float:
     # normalize update_weights so we don't have to divid later. If they are already normalized it does nothing.
     update_weights = normalize_weights(update_weights)
     norm_distances = torch.tensor([
         l2distance(p, median).item() 
-        for p in model_weights
-    ]).to(model_weights[0][0].device)
+        for p in client_weights
+    ]).to(client_weights[0][0].device)
     return (norm_distances * update_weights).sum()
 
 @torch.no_grad()
 def geometric_median(
-    model_weights: Union[List[List[torch.Tensor]], List[torch.Tensor], torch.Tensor], 
+    client_weights: Union[List[List[torch.Tensor]], List[torch.Tensor], torch.Tensor], 
     update_weights: Union[torch.Tensor, List[int]]=None, 
     eps: float=1e-6, 
     maxiter: int=100, 
@@ -95,25 +95,23 @@ def geometric_median(
     # normalize update_weights
     update_weights = normalize_weights(update_weights)
 
-    median = weighted_average(model_weights, update_weights)
+    median = weighted_average(client_weights, update_weights)
     new_update_weights = update_weights
-    objective_value = geometric_median_objective(median, model_weights, update_weights)
+    objective_value = geometric_median_objective(median, client_weights, update_weights)
 
     # Weiszfeld iterations
     for _ in range(maxiter):
         prev_obj_value = objective_value
-        denom = torch.stack([l2distance(p, median) for p in model_weights])
+        denom = torch.stack([l2distance(p, median) for p in client_weights])
         new_update_weights = update_weights / torch.clamp(denom, min=eps) 
-        median = weighted_average(model_weights, new_update_weights)
-        objective_value = geometric_median_objective(median, model_weights, update_weights)
+        median = weighted_average(client_weights, new_update_weights)
+        objective_value = geometric_median_objective(median, client_weights, update_weights)
         if abs(prev_obj_value - objective_value) <= ftol * objective_value:
             break
 
     return median
 
-
 # default reducer for not doing any reducing
-
 class DefaultReducer:
     def __init__(self) -> None: 
         return

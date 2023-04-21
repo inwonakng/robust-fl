@@ -22,9 +22,9 @@ class FedAvg(Aggregator):
         updates:List[Update],
     ) -> dict:
         new_global_state = global_model.get_state()
-        model_weights, update_weights = self.parse_updates(cur_epoch, updates)
+        client_weights, update_weights = self.parse_updates(cur_epoch, updates)
 
-        for key, components in zip(new_global_state.keys(), zip(*model_weights)):
+        for key, components in zip(new_global_state.keys(), zip(*client_weights)):
             new_global_state[key] = weighted_average(components, update_weights)
         return new_global_state
 

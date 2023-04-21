@@ -86,10 +86,7 @@ class Trainer:
                 loss = self.criterion(out, batch_y)
                 loss.backward()
 
-                logging.debug(f'Trainer -- Epoch {epoch}, Batch {batch_idx}, isnan: {self.isnan()}')
                 self.optimizer.step()
-
-
 
                 epoch_loss.append(loss.item())
             losses.append(sum(epoch_loss))

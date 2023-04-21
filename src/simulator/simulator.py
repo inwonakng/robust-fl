@@ -183,7 +183,7 @@ class Simulator:
             avg_malicious_train_acc = 0
             avg_malicious_test_acc = 0
 
-            if len(to_update_global):
+            if len(to_update_global) > 0:
                 # only update the global model if we have any updates
                 avg_losses, train_acc_scores, test_acc_scores, is_client_malicious = zip(*[
                     (
@@ -221,8 +221,8 @@ class Simulator:
                 if new_state is not None:
                     self.global_model.set_state(new_state)
                     logging.debug('Simulator -- global model updated with new weights')
-                else:
-                    logging.debug('Simulator -- No new weights to apply')
+            else:
+                logging.debug('Simulator -- No new weights to apply')
 
             
             pred = self.global_model.predict(self.x_test)

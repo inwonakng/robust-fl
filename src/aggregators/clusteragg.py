@@ -5,7 +5,7 @@ from sklearn.decomposition import PCA
 from umap import UMAP
 from sklearn.cluster import AffinityPropagation, KMeans, MeanShift
 from hdbscan import HDBSCAN
-
+import logging
 
 from models import Trainer
 from update import Update
@@ -62,13 +62,13 @@ class ClusterAgg(Aggregator):
 
     def combine_weights(
         self, 
-        model_weights: torch.Tensor,
+        client_weights: torch.Tensor,
         update_weights: torch.Tensor,
     ):
         if self.agg_mode == 'average':
-            combined = weighted_average(model_weights, update_weights)
+            combined = weighted_average(client_weights, update_weights)
         elif self.agg_mode == 'median':
-            combined = geometric_median(model_weights, update_weights)
+            combined = geometric_median(client_weights, update_weights)
         else:
             raise Exception('unknown final aggregation method!')
         return combined
@@ -80,11 +80,11 @@ class ClusterAgg(Aggregator):
         updates:List[Update],
     ) -> dict:
         new_global_state = global_model.get_state()
-        model_weights, update_weights = self.parse_updates(cur_epoch, updates)
-        update_weights = torch.tensor(update_weights).to(model_weights[0][0].device)
+        client_weights, update_weights = self.parse_updates(cur_epoch, updates)
+        update_weights = torch.tensor(update_weights).to(client_weights[0][0].device)
         final_agg = []
 
-        for component in map(torch.stack,zip(*model_weights)): 
+        for component in map(torch.stack,zip(*client_weights)): 
             reduced = self.dim_reducer.fit_transform(component.flatten(1).cpu())
             component_clusters = self.cluster_detector.fit_predict(reduced)
 
@@ -92,6 +92,8 @@ class ClusterAgg(Aggregator):
 
             # if len(cluster_ids) == 1 and cluster_ids[0] == -1:
             #     raise Exception('Cluster detector failed to find any valid clusters!')
+            logging.debug(f'ClusterAgg -- found {len(cluster_ids)} clusters')
+
 
             cluster_medians = torch.stack([
                 self.combine_weights(

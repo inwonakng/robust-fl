@@ -1,9 +1,9 @@
 from typing import List, Tuple
 import torch
+import logging
 
 from models import Trainer
 from update import Update
-
 from .utils import normalize_weights
 
 class Aggregator:
@@ -13,10 +13,18 @@ class Aggregator:
     ) -> None:
         self.use_staleness = use_staleness
 
-    def aggregate(self,cur_epoch: int, global_model:Trainer, updates: List[Update]) -> None:
+    def aggregate(
+        self,
+        cur_epoch: int, 
+        global_model:Trainer, 
+        updates: List[Update]
+    ) -> None:
         raise NotImplementedError
     
-    def validate(self, to_update_global) -> None:
+    def validate(
+        self, 
+        to_update_global
+    ) -> None:
         if to_update_global is not None:
             for v in to_update_global.values():
                 if v.isnan().any():
@@ -39,7 +47,6 @@ class Aggregator:
         update_weights = normalize_weights(update_weights).to(device)
         update_delays = torch.tensor(update_delays).long().to(device)
 
-        # TODO: do something wtih the delays to modify the model weights. 
         if self.use_staleness:
             # Our simpler staleness weighting
             staleness_weights = torch.ones(len(updates)).to(device) * cur_epoch + 1e-8
@@ -49,6 +56,7 @@ class Aggregator:
         return points, update_weights
 
     def __call__(self,cur_epoch: int, global_model:Trainer, updates:List[Update]) -> None:
+        logging.debug(f'Aggregator -- received {len(updates)} updates to aggregate')
         to_update_global = None
         if len(updates) > 0:
             to_update_global = self.aggregate(cur_epoch, global_model, updates)

@@ -27,15 +27,15 @@ class RFA(Aggregator):
     ) -> dict:
         new_global_state = global_model.get_state()
 
-        model_weights, update_weights = self.parse_updates(cur_epoch, updates)
+        client_weights, update_weights = self.parse_updates(cur_epoch, updates)
 
         if self.per_component:
             median = [
                 geometric_median(components, update_weights)
-                for components in zip(*model_weights)
+                for components in zip(*client_weights)
             ]
         else:
-            median = geometric_median(model_weights, update_weights)
+            median = geometric_median(client_weights, update_weights)
 
         for i,k in enumerate(new_global_state.keys()):
             new_global_state[k] = median[i]
