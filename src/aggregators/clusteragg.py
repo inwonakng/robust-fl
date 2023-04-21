@@ -104,7 +104,7 @@ class ClusterAgg(Aggregator):
             ])
             cluster_weights = torch.tensor(
                 np.unique(
-                    component_clusters
+                    component_clusters,
                     # component_clusters[component_clusters > -1], 
                     return_counts = True
                 )[1]
