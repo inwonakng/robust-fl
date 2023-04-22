@@ -25,6 +25,7 @@ class FedAvg(Aggregator):
         client_weights, update_weights = self.parse_updates(cur_epoch, updates)
 
         for key, components in zip(new_global_state.keys(), zip(*client_weights)):
+            if not new_global_state[key].size(): continue
             new_global_state[key] = weighted_average(components, update_weights)
         return new_global_state
 

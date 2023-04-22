@@ -168,7 +168,7 @@ class Simulator:
             n_epoch (int): Nubmer of rounds to run in simulation.
             overwrite (bool): If true, the simulation skips if the report already exists.
         """
-        if not overwrite and (self.output_dir / 'report.csv').is_file():
+        if not overwrite and self.output_dir and (self.output_dir / 'report.csv').is_file():
             return
 
         for epoch in tqdm(

@@ -28,6 +28,7 @@ class RandomSampleSimple(Aggregator):
 
         # make the new set of weights
         for key, components in zip(new_global_state.keys(), zip(*client_weights)):
+            if not new_global_state[key].size(): continue
             # take a random sample
             stacked_components = torch.stack(components)
 

@@ -84,7 +84,8 @@ class ClusterAgg(Aggregator):
         update_weights = torch.tensor(update_weights).to(client_weights[0][0].device)
         final_agg = []
 
-        for component in map(torch.stack,zip(*client_weights)): 
+        for key, component in zip(new_global_state.keys(), map(torch.stack,zip(*client_weights))): 
+            if not new_global_state[key].size(): continue
             reduced = self.dim_reducer.fit_transform(component.flatten(1).cpu())
             component_clusters = self.cluster_detector.fit_predict(reduced)
 

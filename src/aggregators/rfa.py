@@ -30,14 +30,17 @@ class RFA(Aggregator):
         client_weights, update_weights = self.parse_updates(cur_epoch, updates)
 
         if self.per_component:
-            median = [
-                geometric_median(components, update_weights)
-                for components in zip(*client_weights)
-            ]
+            component_median = {
+                key: geometric_median(components, update_weights)
+                for key, components in zip(new_global_state.keys(), zip(*client_weights))
+                if new_global_state[key].size()
+            }
+            for k in component_median:
+                new_global_state[k] = component_median[k]
         else:
-            median = geometric_median(client_weights, update_weights)
+            whole_median = geometric_median(client_weights, update_weights)
 
-        for i,k in enumerate(new_global_state.keys()):
-            new_global_state[k] = median[i]
+            for i,k in enumerate(new_global_state.keys()):
+                new_global_state[k] = whole_median[i]
 
         return new_global_state
