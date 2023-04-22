@@ -13,7 +13,7 @@ parser = ArgumentParser()
 parser.add_argument('-c', '--config_file', required=True, type=str)
 parser.add_argument('-l', '--staleness_lambda', default=1, type=int)
 parser.add_argument('-e', '--sim_epoch', default=100, type=int)
-parser.add_argument('-o', '--overwrite', default=False, type=bool)
+parser.add_argument('-o', '--overwrite', action='store_true')
 args = parser.parse_args()
 
 # set the default device

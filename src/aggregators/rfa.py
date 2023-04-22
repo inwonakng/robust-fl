@@ -1,4 +1,5 @@
 from typing import List
+import torch
 
 from .utils import geometric_median
 from models import Trainer
@@ -21,13 +22,15 @@ class RFA(Aggregator):
 
     def aggregate(
         self,
-        cur_epoch: int,
         global_model: Trainer,
-        updates:List[Update],
+        # cur_epoch: int,
+        # updates:List[Update],
+        client_weights: List[dict],
+        update_weights: torch.Tensor,
     ) -> dict:
         new_global_state = global_model.get_state()
 
-        client_weights, update_weights = self.parse_updates(cur_epoch, updates)
+        # client_weights, update_weights = self.parse_updates(cur_epoch, updates)
 
         if self.per_component:
             component_median = {

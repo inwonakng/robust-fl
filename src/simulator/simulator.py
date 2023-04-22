@@ -170,10 +170,11 @@ class Simulator:
         """
         if not overwrite and self.output_dir and (self.output_dir / 'report.csv').is_file():
             return
-
+        
+        print(f'Running {str(self.output_dir)}', flush=True)
         for epoch in tqdm(
             range(n_epoch), 
-            desc=f'Running {str(self.output_dir)}', 
+            # desc=f'Running {str(self.output_dir)}', 
             leave=True,
         ):
             

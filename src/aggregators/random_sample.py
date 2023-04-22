@@ -19,12 +19,12 @@ class RandomSampleSimple(Aggregator):
     
     def aggregate(
         self,
-        cur_epoch: int,
         global_model: Trainer,
-        updates:List[Update],
+        client_weights: List[dict],
+        update_weights: torch.Tensor,
     ) -> dict:
         new_global_state = global_model.get_state()
-        client_weights, update_weights = self.parse_updates(cur_epoch, updates)
+        # client_weights, update_weights = self.parse_updates(cur_epoch, updates)
 
         # make the new set of weights
         for key, components in zip(new_global_state.keys(), zip(*client_weights)):

@@ -14,8 +14,8 @@ aggregator_settings:
   - clusteragg_kmeans_8_median
   - clusteragg_agglo_average
   - clusteragg_agglo_median
-  - clusteragg_meanshift_average
-  - clusteragg_meanshift_median
+  # - clusteragg_meanshift_average
+  # - clusteragg_meanshift_median
 client_settings:
   - no_poison_no_straggle
   - no_poison_yes_straggle
