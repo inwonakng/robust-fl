@@ -68,7 +68,7 @@ class Aggregator:
 
         return points, update_weights
 
-    def __call__(self,cur_epoch: int, global_model:Trainer, updates:List[Update]) -> None:
+    def __call__(self,cur_epoch: int, global_model:Trainer, updates:List[Update]) -> dict:
         logging.debug(f'Aggregator -- received {len(updates)} updates to aggregate')
         client_weights, update_weights = self.parse_updates(cur_epoch, updates)
         to_update_global = None

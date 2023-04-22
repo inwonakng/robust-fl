@@ -14,8 +14,8 @@ from update import UpdateTracker, Update
 from scheduler import Scheduler
 from .loader import load_trainer,load_aggregator,load_dataset
 
-np.random.seed(0)
-torch.manual_seed(0)
+# np.random.seed(0)
+# torch.manual_seed(0)
 
 
 class Simulator:
@@ -28,6 +28,8 @@ class Simulator:
         scheduler_args: dict,
         output_dir: str = None,
     ) -> None:
+        np.random.seed(0)
+        torch.manual_seed(0)
         """_summary_
 
         Args:
@@ -161,6 +163,8 @@ class Simulator:
         n_epoch: int,
         overwrite: bool = False
     ):
+        np.random.seed(0)
+        torch.manual_seed(0)
         
         """Runs the simluation for specified nubmer of rounds.
 
@@ -191,12 +195,14 @@ class Simulator:
 
             if len(to_update_global) > 0:
                 # only update the global model if we have any updates
-                avg_losses, train_acc_scores, test_acc_scores, is_client_malicious = zip(*[
+                avg_losses, train_acc_scores, test_acc_scores, is_client_malicious, n_ontime_updates, n_delayed_updates = zip(*[
                     (
                         u.avg_loss,
                         u.train_acc_score,
                         u.test_acc_score,
                         self.find_client(u.client_id).is_malicious,
+                        u.delay == 0,
+                        u.delay > 0,
                     )
                     for u in to_update_global
                 ])
@@ -234,15 +240,16 @@ class Simulator:
             pred = self.global_model.predict(self.x_test).cpu()
             global_accuracy_score = accuracy_score(self.y_test, pred)
             logging.debug(f'Simulator -- Global model test acc: {global_accuracy_score}')
-
+            
             self.report.append({
                 'round': epoch,
                 'n_client_req': len(picked_clients),
                 'n_new_updates': len(to_update_global),
-                'n_delayed_updates': sum([u.delay > 0 for u in to_update_global]),
+                'n_ontime_updates': n_ontime_updates,
+                'n_delayed_updates': n_delayed_updates,
                 'n_malicious_updates': is_client_malicious.sum().item(),
                 'n_benign_updates': (~is_client_malicious).sum().item(),
-                'update_delays': [u.delay for u in to_update_global],
+                # 'update_delays': [u.delay for u in to_update_global],
                 'client_avg_loss_avg': avg_losses.mean().item(),
                 # 'queue_size': len(self.update_tracker.delayed_client_ids),
                 # 'delayed_clients': self.update_tracker.delayed_client_ids,
