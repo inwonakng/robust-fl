@@ -58,8 +58,9 @@ def random_sample_average(
     global_weights: torch.Tensor,
     p: float,
 ) -> Union[List[torch.Tensor], torch.Tensor]:    
-    selected_params = torch.zeros(client_weights.size())
-    rand_mask = torch.rand(client_weights.size()) < p
+    device = global_weights.device
+    selected_params = torch.zeros(client_weights.size()).to(device)
+    rand_mask = torch.rand(client_weights.size()).to(device) < p
     selected_params[rand_mask] = client_weights[rand_mask]
 
     keep_original_mask = rand_mask.sum(0) == 0

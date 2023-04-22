@@ -42,7 +42,7 @@ class Client:
             random_poison_labels = torch.tensor([
                 available_labels[torch.randperm(len(available_labels))[0]]
                 for _ in range(sum(y_train == t))
-            ])
+            ]).long()
             poisoned_y_train[y_train == t] = random_poison_labels
 
         logging.debug(f'Client {self.id} -- successfully poisoned data')
@@ -56,6 +56,7 @@ class Client:
         avg_loss = client_copy.fit(self.x_train, self.y_train, self.n_train_epoch)
         train_size = len(self.x_train)
         new_state = client_copy.get_state()
+
         train_acc_score = accuracy_score(self.y_train, client_copy.predict(self.x_train))
         test_acc_score = accuracy_score(self.y_test, client_copy.predict(self.x_test))
 

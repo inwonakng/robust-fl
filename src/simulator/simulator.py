@@ -69,6 +69,7 @@ class Simulator:
         
         logging.debug('Simulator -- successfully constructed.')
 
+
     def _set_scheduler_options(
         self,
         n_clients: int,
@@ -158,13 +159,17 @@ class Simulator:
     def run(
         self,
         n_epoch: int,
+        overwrite: bool = False
     ):
         
         """Runs the simluation for specified nubmer of rounds.
 
         Args:
             n_epoch (int): Nubmer of rounds to run in simulation.
+            overwrite (bool): If true, the simulation skips if the report already exists.
         """
+        if not overwrite and (self.output_dir / 'report.csv').is_file():
+            return
 
         for epoch in tqdm(
             range(n_epoch), 
@@ -225,8 +230,9 @@ class Simulator:
                 logging.debug('Simulator -- No new weights to apply')
 
             
-            pred = self.global_model.predict(self.x_test)
-            logging.debug(f'Simulator -- Global model test acc: {accuracy_score(self.y_test, pred)}')
+            pred = self.global_model.predict(self.x_test).cpu()
+            global_accuracy_score = accuracy_score(self.y_test, pred)
+            logging.debug(f'Simulator -- Global model test acc: {global_accuracy_score}')
 
             self.report.append({
                 'round': epoch,
