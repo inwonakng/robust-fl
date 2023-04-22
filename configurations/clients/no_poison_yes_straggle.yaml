@@ -5,5 +5,5 @@ scheduler_args:
   n_clients_per_round: 100
   n_malicious_clients: 0
   max_delay: 30
-  n_delay_min: 0
+  n_delay_min: .2
   n_delay_max: .7
