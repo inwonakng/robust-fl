@@ -195,13 +195,12 @@ class Simulator:
 
             if len(to_update_global) > 0:
                 # only update the global model if we have any updates
-                avg_losses, train_acc_scores, test_acc_scores, is_client_malicious, n_ontime_updates, n_delayed_updates = zip(*[
+                avg_losses, train_acc_scores, test_acc_scores, is_client_malicious, is_update_delayed = zip(*[
                     (
                         u.avg_loss,
                         u.train_acc_score,
                         u.test_acc_score,
                         self.find_client(u.client_id).is_malicious,
-                        u.delay == 0,
                         u.delay > 0,
                     )
                     for u in to_update_global
@@ -245,8 +244,8 @@ class Simulator:
                 'round': epoch,
                 'n_client_req': len(picked_clients),
                 'n_new_updates': len(to_update_global),
-                'n_ontime_updates': n_ontime_updates,
-                'n_delayed_updates': n_delayed_updates,
+                'n_ontime_updates': len(to_update_global) - sum(is_update_delayed),
+                'n_delayed_updates': sum(is_update_delayed),
                 'n_malicious_updates': is_client_malicious.sum().item(),
                 'n_benign_updates': (~is_client_malicious).sum().item(),
                 # 'update_delays': [u.delay for u in to_update_global],
