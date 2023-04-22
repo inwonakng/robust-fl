@@ -49,7 +49,7 @@ class Client:
         return poisoned_y_train
 
     def update(self, global_model:Trainer,delay:int) -> Update:
-        logging.debug(f'Client {self.id} -- received request for update. Update #{self.update_counter}')
+        # logging.debug(f'Client {self.id} -- received request for update. Update #{self.update_counter}')
         # make copy of the gloabl model
         client_copy = global_model.clone()
         client_copy.set_state(global_model.get_state())
@@ -64,7 +64,7 @@ class Client:
         if any(v.isnan().any() for v in new_state.values()):
             raise Exception('Client update result contains NaN!')
         
-        logging.debug(f'Client {self.id} -- Successfully computed update.')
+        # logging.debug(f'Client {self.id} -- Successfully computed update.')
         self.update_counter += 1
         
         return Update(

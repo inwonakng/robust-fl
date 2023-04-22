@@ -87,7 +87,15 @@ class ClusterAgg(Aggregator):
         for key, component in zip(new_global_state.keys(), map(torch.stack,zip(*client_weights))): 
             if not new_global_state[key].size(): continue
             reduced = self.dim_reducer.fit_transform(component.flatten(1).cpu())
-            component_clusters = self.cluster_detector.fit_predict(reduced)
+
+            if (
+                self.cluster_detector.__class__.__name__ == "KMeans"
+                and len(client_weights) <  self.cluster_detector.n_clusters
+            ):
+                # specific to kmeans only. if we have less points than the number of clusters, just assign them all into one cluster
+                component_clusters = np.zeros(len(client_weights))
+            else:
+                component_clusters = self.cluster_detector.fit_predict(reduced)
 
             cluster_ids = np.unique(component_clusters)
 

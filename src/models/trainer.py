@@ -64,7 +64,7 @@ class Trainer:
         verbose:bool=False
     ) -> Tuple[torch.Tensor, float]:
         
-        logging.debug(f'Trainer -- Training model for {n_epoch} epochs, isnan: {self.isnan()}')
+        # logging.debug(f'Trainer -- Training model for {n_epoch} epochs, isnan: {self.isnan()}')
         self.model.train()
         losses = []
         x = x.to(self.device)
