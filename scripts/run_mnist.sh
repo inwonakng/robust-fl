@@ -3,26 +3,22 @@
 learning_config=configurations/learning/mnist_0_1.yaml
 
 aggregator_settings=(
-    # "fedavg"
-    # "rfa_whole"
-    # "rfa_component"
+    "fedavg"
+    "rfa_whole"
+    "rfa_component"
     "random_sample_simple_0_3"
     "random_sample_simple_0_5"
     "random_sample_simple_0_7"
-    # "clusteragg_kmeans_3_average"
-    # "clusteragg_kmeans_5_average"
-    # "clusteragg_kmeans_8_average"
-    # "clusteragg_kmeans_3_median"
-    # "clusteragg_kmeans_5_median"
-    # "clusteragg_kmeans_8_median"
-
-
-
-
-    # "clusteragg_agglo_average"
-    # "clusteragg_agglo_median"
-    # "clusteragg_meanshift_average"
-    # "clusteragg_meanshift_median"
+    "clusteragg_kmeans_3_average"
+    "clusteragg_kmeans_5_average"
+    "clusteragg_kmeans_8_average"
+    "clusteragg_kmeans_3_median"
+    "clusteragg_kmeans_5_median"
+    "clusteragg_kmeans_8_median"
+    "clusteragg_agglo_average"
+    "clusteragg_agglo_median"
+    "clusteragg_meanshift_average"
+    "clusteragg_meanshift_median"
 )
 
 client_settings=(
