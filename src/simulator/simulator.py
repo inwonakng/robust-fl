@@ -239,6 +239,7 @@ class Simulator:
                 'round': epoch,
                 'client_req': len(picked_clients),
                 'new_updates': len(to_update_global),
+                'delayed_updates': sum([u.delay > 0 for u in to_update_global]),
                 'avg_loss': avg_losses,
                 'queue_size': len(self.update_tracker.delayed_client_ids),
                 'client_train_acc': train_acc_scores,
