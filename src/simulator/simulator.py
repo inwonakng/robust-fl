@@ -26,7 +26,7 @@ class Simulator:
         agg_args: dict,
         client_args: dict,
         scheduler_args: dict,
-        output_dir: str,
+        output_dir: str = None,
     ) -> None:
         """_summary_
 
@@ -237,13 +237,17 @@ class Simulator:
 
             self.report.append({
                 'round': epoch,
-                'client_req': len(picked_clients),
-                'new_updates': len(to_update_global),
-                'delayed_updates': sum([u.delay > 0 for u in to_update_global]),
-                'avg_loss': avg_losses,
+                'n_client_req': len(picked_clients),
+                'n_new_updates': len(to_update_global),
+                'n_delayed_updates': sum([u.delay > 0 for u in to_update_global]),
+                'n_malicious_updates': is_client_malicious.sum().item(),
+                'n_benign_updates': (~is_client_malicious).sum().item(),
+                'update_delays': [u.delay for u in to_update_global],
+                'client_avg_loss': avg_losses.tolist(),
                 'queue_size': len(self.update_tracker.delayed_client_ids),
-                'client_train_acc': train_acc_scores,
-                'client_test_acc': test_acc_scores,
+                'delayed_clients': self.update_tracker.delayed_client_ids,
+                'client_train_acc': train_acc_scores.tolist(),
+                'client_test_acc': test_acc_scores.tolist(),
                 'client_train_acc_avg': avg_train_acc,
                 'client_test_acc_avg': avg_test_acc,
                 'benign_client_train_acc_avg': avg_benign_train_acc,
