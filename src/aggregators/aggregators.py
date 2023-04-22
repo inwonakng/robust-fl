@@ -47,14 +47,20 @@ class Aggregator:
         update_weights = normalize_weights(update_weights).to(device)
         update_delays = torch.tensor(update_delays).long().to(device)
 
-        # Our simpler staleness weighting
-        staleness_weights = torch.ones(len(updates)).to(device) * cur_epoch + 1e-8
-        staleness_weights -= update_delays * self.staleness_lambda
-        # before normalization, the values of staleness_weights must be nonnnegative
-        staleness_weights += staleness_weights.min()
-        staleness_weights = normalize_weights(staleness_weights).to(device)
+        if self.staleness_lambda > 0:
+            # Our simpler staleness weighting
+            staleness_weights = torch.ones(len(updates)).to(device) * cur_epoch + 1e-8
+            staleness_weights -= update_delays * self.staleness_lambda
+            # before normalization, the values of staleness_weights must be nonnnegative
+            staleness_weights += staleness_weights.min()
+            staleness_weights = normalize_weights(staleness_weights).to(device)
 
-        update_weights = normalize_weights(update_weights + staleness_weights)
+            update_weights = normalize_weights(update_weights + staleness_weights)
+        else:
+            # reject delayed inputs
+            accept_mask = update_delays == 0
+            update_weights = update_weights[accept_mask]
+            points = [p for p, accept in zip(points, accept_mask.tolist()) if accept]
 
         return points, update_weights
 
