@@ -82,7 +82,7 @@ class ClusterAgg(Aggregator):
         new_global_state = global_model.get_state()
         client_weights, update_weights = self.parse_updates(cur_epoch, updates)
         update_weights = torch.tensor(update_weights).to(client_weights[0][0].device)
-        final_agg = []
+        final_agg = {}
 
         for key, component in zip(new_global_state.keys(), map(torch.stack,zip(*client_weights))): 
             if not new_global_state[key].size(): continue
@@ -112,9 +112,9 @@ class ClusterAgg(Aggregator):
                 )[1]
             ).to(cluster_medians.device)
             component_agg = self.combine_weights(cluster_medians, cluster_weights)         
-            final_agg.append(component_agg)
+            final_agg[key] = component_agg
 
-        for i,k in enumerate(new_global_state.keys()):
-            new_global_state[k] = final_agg[i]
+        for k in final_agg:
+            new_global_state[k] = final_agg[k]
 
         return new_global_state
