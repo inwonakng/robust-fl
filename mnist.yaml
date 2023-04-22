@@ -19,7 +19,7 @@ aggregator_settings:
   # - clusteragg_meanshift_average
   # - clusteragg_meanshift_median
 client_settings:
-  - no_poison_no_straggle
+  # - no_poison_no_straggle
   - no_poison_yes_straggle
-  - yes_poison_no_straggle
+  # - yes_poison_no_straggle
   - yes_poison_yes_straggle

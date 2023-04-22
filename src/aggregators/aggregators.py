@@ -9,7 +9,7 @@ from .utils import normalize_weights
 class Aggregator:
     def __init__(
         self, 
-        staleness_lambda: bool = 0,
+        staleness_lambda: float = 0,
     ) -> None:
         self.staleness_lambda = staleness_lambda
 

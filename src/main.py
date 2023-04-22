@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore")
 
 parser = ArgumentParser()
 parser.add_argument('-c', '--config_file', required=True, type=str)
-parser.add_argument('-l', '--staleness_lambda', default=1, type=int)
+parser.add_argument('-l', '--staleness_lambda', default=1, type=float)
 parser.add_argument('-e', '--sim_epoch', default=100, type=int)
 parser.add_argument('-o', '--overwrite', action='store_true')
 args = parser.parse_args()
@@ -42,7 +42,7 @@ for agg_config in run_config['aggregator_settings']:
                 / agg_config_file.stem 
                 / learning_config_file.stem 
                 / client_config_file.stem
-                / f'staleness_lambda_{args.staleness_lambda}'
+                / f'staleness_lambda_{args.staleness_lambda}'.replace('.','_')
             ),
         )
 
