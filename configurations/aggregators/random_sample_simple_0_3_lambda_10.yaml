@@ -1,4 +1,4 @@
 agg_args:
   agg_name: RandomSampleSimple
-  select_p: 0.5
-  use_staleness: True
+  select_p: 0.3
+  staleness_lambda: 10

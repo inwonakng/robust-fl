@@ -1,7 +1,7 @@
 agg_args:
   agg_mode: average
   agg_name: ClusterAgg
-  use_staleness: True
+  staleness_lambda: 10
   cluster_detector_args:
     detector_type: AffinityPropagation
   reducer_args:

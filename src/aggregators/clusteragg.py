@@ -94,7 +94,6 @@ class ClusterAgg(Aggregator):
             #     raise Exception('Cluster detector failed to find any valid clusters!')
             logging.debug(f'ClusterAgg -- found {len(cluster_ids)} clusters')
 
-
             cluster_medians = torch.stack([
                 self.combine_weights(
                     component[component_clusters == c], 

@@ -1,7 +1,7 @@
 agg_args:
   agg_name: ClusterAgg
-  agg_mode: median
-  use_staleness: True
+  agg_mode: average
+  staleness_lambda: 10
   cluster_detector_args:
     detector_type: KMeans
     n_clusters: 3

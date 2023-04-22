@@ -6,3 +6,4 @@ src/test.ipynb
 .vscode
 test.ipynb
 src/debug.ipynb
+.DS_Store
