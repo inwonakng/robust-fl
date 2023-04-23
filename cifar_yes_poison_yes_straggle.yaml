@@ -1,4 +1,4 @@
-learning_setting: mnist_0_1
+learning_setting: cifar_0_1
 aggregator_settings:
   - fedavg
   - rfa_whole
