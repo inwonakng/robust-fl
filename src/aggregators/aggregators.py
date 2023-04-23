@@ -47,7 +47,7 @@ class Aggregator:
         update_weights = normalize_weights(update_weights).to(device)
         update_delays = torch.tensor(update_delays).long().to(device)
 
-        if self.staleness_lambda > 0:
+        if self.staleness_lambda > -1:
             # Our simpler staleness weighting
             staleness_weights = torch.ones(len(updates)).to(device) * cur_epoch + 1e-8
             staleness_weights -= update_delays * self.staleness_lambda
