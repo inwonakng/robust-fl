@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore")
 
 parser = ArgumentParser()
 parser.add_argument('-c', '--config_file', required=True, type=str)
-parser.add_argument('-l', '--staleness_lambda', default=1, type=float)
+parser.add_argument('-l', '--staleness_lambda', default=0, type=float)
 parser.add_argument('-e', '--sim_epoch', default=100, type=int)
 parser.add_argument('-o', '--overwrite', action='store_true')
 args = parser.parse_args()

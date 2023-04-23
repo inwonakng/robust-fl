@@ -35,19 +35,17 @@ class Aggregator:
         cur_epoch: int,
         updates:List[Update]
     ) -> Tuple[List[torch.Tensor], torch.Tensor]:
-        points, update_weights, update_delays = [], [], []
+        client_weights, update_weights, update_delays = [], [], []
         
         for u in updates:
-            points.append(list(u.new_state.values()))
+            client_weights.append(list(u.new_state.values()))
             update_weights.append(u.train_size)
             update_delays.append(u.counter)
         
-        device = points[0][0].device
+        device = client_weights[0][0].device
 
         update_weights = normalize_weights(update_weights).to(device)
         update_delays = torch.tensor(update_delays).long().to(device)
-
-
 
         if self.staleness_lambda > 0:
             # Our simpler staleness weighting
@@ -64,9 +62,9 @@ class Aggregator:
             logging.debug(f'Aggregator -- {(~accept_mask).sum().item()} delayed updates out of {len(accept_mask)} total updates are rejected.')
 
             update_weights = update_weights[accept_mask]
-            points = [p for p, accept in zip(points, accept_mask.tolist()) if accept]
+            client_weights = [p for p, accept in zip(client_weights, accept_mask.tolist()) if accept]
 
-        return points, update_weights
+        return client_weights, update_weights
 
     def __call__(self,cur_epoch: int, global_model:Trainer, updates:List[Update]) -> dict:
         logging.debug(f'Aggregator -- received {len(updates)} updates to aggregate')
