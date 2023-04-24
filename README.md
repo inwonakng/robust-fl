@@ -23,7 +23,7 @@ Class project for Security and Privacy in Machine Learning
 <!-- - Krum -->
 
 
-## Usage
+## Installation
 
 ### Making virtual environment:
 
@@ -83,32 +83,39 @@ Or you can create a conda environment with the specified python version by runni
 ### Running the code:
 
 After activating the environment, you can run the following command from the root folder of the project to run an experiment.
-
 Notice that the aggregator configuration and base configuration are separated into two files to avoid having to write repetive settings.
+You can use our pre-set `.yaml` files in the root directory of make your own to run the experiments.
 
 ```
-python src/main.py \
-    --agg_config={AGGREGATOR_CONFIG_FILE} \
-    --client_config={CLIENTS_CONFIG_FILE} \
-    --learning_config={DATASET_CONFIG_FILE}
+python src/main.py -c={CONFIG_FILE}
 ```
 
-You can also refer to the sample scripts in [scripts](scripts) for examples.
+#### CLI Usage
 
+Running `python src/main.py --help` should display this message.
 
-## Related Works
+```
+usage: main.py [-h] -c CONFIG_FILE [-s] [-i] [-l STALENESS_LAMBDA] [-g STALENESS_GAMMA] [-e SIM_EPOCH] [-o]
 
-[related_works.md](related_works.md)
+options:
+  -h, --help            show this help message and exit
+  -c CONFIG_FILE, --config_file CONFIG_FILE
+                        Location of the configuration file to load. Must contain learning, aggregator and client
+                        settings
+  -s, --use_staleness   When specified, staleness_lambda and staleness_lambda will be used to weight delayed updates.
+  -i, --ignore_delays
+  -l STALENESS_LAMBDA, --staleness_lambda STALENESS_LAMBDA
+                        Value of lambda to use in staleness weighting. Increasing this value will increase the weight
+                        assigned towards on-time updates.
+  -g STALENESS_GAMMA, --staleness_gamma STALENESS_GAMMA
+                        Value of gamma to use in staleness weighting. Increasing this value will increase the
+                        influence of the staleness mechanism.
+  -e SIM_EPOCH, --sim_epoch SIM_EPOCH
+                        Number of global epochs to use for each simluation.
+  -o, --overwrite       When specified, the report file will be overwritten. If not, simulations with existing reports
+                        will be skipped.
+```
 
+### Viewing the results
 
-## Our Proposed Aggregations:
-
-
-### ClusterAgg
-
-
-
-
-
-### RandomAgg
-
+The plots are generated from the `report.csv` files under the ouput directory. The notebook used for plot generation can be found in [notebooks/view_results.ipynb](notebooks/view_results.ipynb)
