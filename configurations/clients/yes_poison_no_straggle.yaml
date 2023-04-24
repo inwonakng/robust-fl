@@ -1,5 +1,5 @@
 client_args:
-  n_train_epoch: 2
+  n_train_epoch: 1
 scheduler_args:
   n_clients: 1000
   n_clients_per_round: 100

@@ -53,30 +53,30 @@ class Aggregator:
         update_weights = normalize_weights(update_weights).to(device)
         update_delays = torch.tensor(update_delays).long().to(device)
 
-        # 0 means no staleness weights considered. Negative values mean just ignore delayed updates
-        if self.use_staleness and not self.ignore_delays:
-            # Our simpler staleness weighting
-            staleness_weights = torch.ones(len(updates)).to(device)
-            # staleness_weights /=  (cur_epoch - update_delays + 1e-20)
+        if self.ignore_delays:
+             # reject delayed inputs
+            accept_mask = update_delays == 0
+            logging.debug(f'Aggregator -- {(~accept_mask).sum().item()} delayed updates out of {len(accept_mask)} total updates are rejected.')
 
-            staleness_weights /= (1+ torch.exp((update_delays + 1))) + (self.staleness_lambda/ (cur_epoch + 1))
-            # before normalization, the values of staleness_weights must be nonnnegative
-            staleness_weights = staleness_weights**2
-            
-            if (staleness_weights != 0).any():
-                # skip normalizing if everything is 0
-                staleness_weights = normalize_weights(staleness_weights).to(device)
-
-            update_weights = normalize_weights(update_weights + staleness_weights * self.staleness_gamma)
+            update_weights = update_weights[accept_mask]
+            client_weights = [p for p, accept in zip(client_weights, accept_mask.tolist()) if accept]
         else:
-            if self.ignore_delays:
-                # reject delayed inputs
-                accept_mask = update_delays == 0
-                logging.debug(f'Aggregator -- {(~accept_mask).sum().item()} delayed updates out of {len(accept_mask)} total updates are rejected.')
+            if self.use_staleness:
+                # Our simpler staleness weighting
+                staleness_weights = torch.ones(len(updates)).to(device)
+                # staleness_weights /=  (cur_epoch - update_delays + 1e-20)
 
-                update_weights = update_weights[accept_mask]
-                client_weights = [p for p, accept in zip(client_weights, accept_mask.tolist()) if accept]
-            # if not don't do anything, meaning we just incorporate them.
+                staleness_weights /= (1+ torch.exp((update_delays + 1))) + (self.staleness_lambda/ (cur_epoch + 1))
+                # before normalization, the values of staleness_weights must be nonnnegative
+                staleness_weights = staleness_weights**2
+                
+                if (staleness_weights != 0).any():
+                    # skip normalizing if everything is 0
+                    staleness_weights = normalize_weights(staleness_weights).to(device)
+
+                update_weights = normalize_weights(update_weights + staleness_weights * self.staleness_gamma)
+                
+        # if not don't do anything, meaning we just incorporate the delayed updates with no special weighting.
 
         return client_weights, update_weights
 
