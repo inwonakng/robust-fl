@@ -2,8 +2,9 @@ agg_args:
   agg_name: ClusterAgg
   agg_mode: average
   reducer_args:
-    reducer_type: UMAP
-    n_components: 5
+    reducer_type: DefaultReducer
+    # reducer_type: UMAP
+    # n_components: 5
     # n_neighbors: 10
   cluster_detector_args:
     detector_type: AffinityPropagation

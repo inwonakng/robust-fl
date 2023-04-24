@@ -12,7 +12,7 @@ aggregator_settings:
   # - clusteragg_kmeans_3_median
   # - clusteragg_kmeans_5_median
   # - clusteragg_kmeans_8_median
-  # - clusteragg_agglo_average
+  - clusteragg_agglo_average
   - clusteragg_agglo_median
 
 
