@@ -9,9 +9,13 @@ from .utils import normalize_weights
 class Aggregator:
     def __init__(
         self, 
-        staleness_lambda: float = -1,
+        use_staleness: bool = False,
+        ignore_delays: bool = True, 
+        staleness_lambda: int = 0,
         staleness_gamma: float = 1,
     ) -> None:
+        self.use_staleness = use_staleness
+        self.ignore_delays = ignore_delays
         self.staleness_lambda = staleness_lambda
         self.staleness_gamma = staleness_gamma
 
@@ -50,10 +54,12 @@ class Aggregator:
         update_delays = torch.tensor(update_delays).long().to(device)
 
         # 0 means no staleness weights considered. Negative values mean just ignore delayed updates
-        if self.staleness_lambda >= 0:
+        if self.use_staleness and not self.ignore_delays:
             # Our simpler staleness weighting
             staleness_weights = torch.ones(len(updates)).to(device)
-            staleness_weights *= (update_delays * self.staleness_lambda / (cur_epoch + 1e-20))
+            # staleness_weights /=  (cur_epoch - update_delays + 1e-20)
+
+            staleness_weights /= (1+ torch.exp((update_delays + 1))) + (self.staleness_lambda/ (cur_epoch + 1))
             # before normalization, the values of staleness_weights must be nonnnegative
             staleness_weights = staleness_weights**2
             
@@ -63,12 +69,14 @@ class Aggregator:
 
             update_weights = normalize_weights(update_weights + staleness_weights * self.staleness_gamma)
         else:
-            # reject delayed inputs
-            accept_mask = update_delays == 0
-            logging.debug(f'Aggregator -- {(~accept_mask).sum().item()} delayed updates out of {len(accept_mask)} total updates are rejected.')
+            if self.ignore_delays:
+                # reject delayed inputs
+                accept_mask = update_delays == 0
+                logging.debug(f'Aggregator -- {(~accept_mask).sum().item()} delayed updates out of {len(accept_mask)} total updates are rejected.')
 
-            update_weights = update_weights[accept_mask]
-            client_weights = [p for p, accept in zip(client_weights, accept_mask.tolist()) if accept]
+                update_weights = update_weights[accept_mask]
+                client_weights = [p for p, accept in zip(client_weights, accept_mask.tolist()) if accept]
+            # if not don't do anything, meaning we just incorporate them.
 
         return client_weights, update_weights
 
