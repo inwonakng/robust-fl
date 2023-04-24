@@ -12,6 +12,7 @@ warnings.filterwarnings("ignore")
 parser = ArgumentParser()
 parser.add_argument('-c', '--config_file', required=True, type=str)
 parser.add_argument('-l', '--staleness_lambda', default=-1, type=float)
+parser.add_argument('-g', '--staleness_gamma', default=1, type=float)
 parser.add_argument('-e', '--sim_epoch', default=100, type=int)
 parser.add_argument('-o', '--overwrite', action='store_true')
 args = parser.parse_args()
@@ -28,6 +29,7 @@ for agg_config in run_config['aggregator_settings']:
     agg_config_file = Path(f"configurations/aggregators/{agg_config}.yaml")
     agg_config = yaml.safe_load(open(agg_config_file))
     agg_config['agg_args']['staleness_lambda'] = args.staleness_lambda
+    agg_config['agg_args']['staleness_gamma'] = args.staleness_gamma
     for client_config in run_config['client_settings']:
         client_config_file = Path(f"configurations/clients/{client_config}.yaml")
         client_config = yaml.safe_load(open(client_config_file))

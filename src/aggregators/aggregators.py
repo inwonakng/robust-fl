@@ -9,9 +9,11 @@ from .utils import normalize_weights
 class Aggregator:
     def __init__(
         self, 
-        staleness_lambda: float = 0,
+        staleness_lambda: float = -1,
+        staleness_gamma: float = 1,
     ) -> None:
         self.staleness_lambda = staleness_lambda
+        self.staleness_gamma = staleness_gamma
 
     def aggregate(
         self,
@@ -47,15 +49,19 @@ class Aggregator:
         update_weights = normalize_weights(update_weights).to(device)
         update_delays = torch.tensor(update_delays).long().to(device)
 
-        if self.staleness_lambda > -1:
+        # 0 means no staleness weights considered. Negative values mean just ignore delayed updates
+        if self.staleness_lambda >= 0:
             # Our simpler staleness weighting
-            staleness_weights = torch.ones(len(updates)).to(device) * cur_epoch + 1e-8
-            staleness_weights -= update_delays * self.staleness_lambda
+            staleness_weights = torch.ones(len(updates)).to(device)
+            staleness_weights *= (update_delays * self.staleness_lambda / (cur_epoch + 1e-20))
             # before normalization, the values of staleness_weights must be nonnnegative
-            staleness_weights += staleness_weights.min()
-            staleness_weights = normalize_weights(staleness_weights).to(device)
+            staleness_weights = staleness_weights**2
+            
+            if (staleness_weights != 0).any():
+                # skip normalizing if everything is 0
+                staleness_weights = normalize_weights(staleness_weights).to(device)
 
-            update_weights = normalize_weights(update_weights + staleness_weights)
+            update_weights = normalize_weights(update_weights + staleness_weights * self.staleness_gamma)
         else:
             # reject delayed inputs
             accept_mask = update_delays == 0
