@@ -3,7 +3,7 @@ agg_args:
   agg_mode: average
   reducer_args:
     reducer_type: UMAP
-    # n_components: 5
-    n_neighbors: 10
+    n_components: 5
+    # n_neighbors: 10
   cluster_detector_args:
     detector_type: AffinityPropagation
