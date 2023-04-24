@@ -15,46 +15,46 @@ parser.add_argument(
     '--config_file', 
     required=True, 
     type=str,
-    description='Location of the configuration file to load. Must contain learning, aggregator and client settings',
+    help='Location of the configuration file to load. Must contain learning, aggregator and client settings',
 )
 parser.add_argument(
     '-s', 
     '--use_staleness',
     action = 'store_true',
-    description = 'When specified, staleness_lambda and staleness_lambda will be used to weight delayed updates.'
+    help= 'When specified, staleness_lambda and staleness_lambda will be used to weight delayed updates.'
 )
 parser.add_argument(
     '-i',
     '--ignore_delays',
     action = 'store_true',
-    description = ''
+    help= ''
 )
 parser.add_argument(
     '-l',
     '--staleness_lambda',
     default=-1,
     type=int,
-    description = 'Value of lambda to use in staleness weighting. Increasing this value will increase the weight assigned towards on-time updates.'
+    help= 'Value of lambda to use in staleness weighting. Increasing this value will increase the weight assigned towards on-time updates.'
 )
 parser.add_argument(
     '-g',
     '--staleness_gamma',
     default=1,
     type=float,
-    description = 'Value of gamma to use in staleness weighting. Increasing this value will increase the influence of the staleness mechanism.'
+    help= 'Value of gamma to use in staleness weighting. Increasing this value will increase the influence of the staleness mechanism.'
 )
 parser.add_argument(
     '-e',
     '--sim_epoch',
     default=100,
     type=int,
-    description = 'Number of global epochs to use for each simluation.'
+    help= 'Number of global epochs to use for each simluation.'
 )
 parser.add_argument(
     '-o',
     '--overwrite',
     action='store_true',
-    description = 'When specified, the report file will be overwritten. If not, simulations with existing reports will be skipped.'
+    help= 'When specified, the report file will be overwritten. If not, simulations with existing reports will be skipped.'
 )
 args = parser.parse_args()
 
